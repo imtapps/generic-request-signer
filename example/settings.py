@@ -1,0 +1,5 @@
+DEBUG = True
+
+EXAMPLE_CLIENT_DOMAIN = 'http://localhost:5000'
+EXAMPLE_CLIENT_ID = 'example'
+EXAMPLE_PRIVATE_KEY = "r_UI603r3pD6OPkIki8xx8cQ3-3M7sIUnNNn55D-D-e="
