@@ -1,7 +1,15 @@
+import hashlib
 import apysigner
 import constants
 import re
 
+
+def generate_hash_for_binary(binary_data):
+    return {'binary_data': hashlib.md5(binary_data).hexdigest()}
+
+def check_signature_for_binary(signature, private_key, full_path, binary):
+    binary_hash = generate_hash_for_binary(binary)
+    return check_signature(signature, private_key, full_path, binary_hash)
 
 def check_signature(signature, private_key, full_path, payload):
     """
