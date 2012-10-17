@@ -69,13 +69,13 @@ class ClientTests(unittest.TestCase):
     def test_get_request_instantiates_factory_with_params(self):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             self.sut._get_request('GET', '/', {}, **{})
-        factory.assert_called_once_with('GET', '1', 'bar')
+        factory.assert_called_once_with('GET', '1', 'bar', {})
 
     def test_get_request_invokes_create_request_on_factory(self):
         data = {'some':'data'}
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             self.sut._get_request('GET', '/endpoint/', data, **{})
-        factory.return_value.create_request.assert_called_once_with('/foo/endpoint/', data)
+        factory.return_value.create_request.assert_called_once_with('/foo/endpoint/')
 
     def test_get_request_returns_factory_create_request_value(self):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:

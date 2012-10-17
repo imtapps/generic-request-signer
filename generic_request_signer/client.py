@@ -16,9 +16,9 @@ class Client(object):
         return response.Response(http_response)
 
     def _get_request(self, http_method, endpoint, data=None, **request_kwargs):
-        request_factory = factory.SignedRequestFactory(http_method, self._client_id, self._private_key)
+        request_factory = factory.SignedRequestFactory(http_method, self._client_id, self._private_key, data)
         service_url = self._get_service_url(endpoint)
-        return request_factory.create_request(service_url, data, **request_kwargs)
+        return request_factory.create_request(service_url, **request_kwargs)
 
     def _get_service_url(self, endpoint):
         return self._base_url + endpoint
