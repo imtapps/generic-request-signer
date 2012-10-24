@@ -26,34 +26,10 @@ class SignedRequestFactoryTests(unittest.TestCase):
     def test_init_captures_incoming_private_key(self):
         self.assertEqual(self.sut.private_key, self.private_key)
 
-    def test_has_basic_boundary_defined(self):
-        self.assertEqual(self.sut.boundary, "----WebKitFormBoundaryJQlIRhP93LbaDnCQ")
-
-    def test_generates_hash_from_binary_data(self):
-        attachment = StringIO('some pdf text from a file').read()
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'file': attachment, 'data': {'filename': 'readme.pdf', 'guid': '1234'}}
-        result = self.sut._data_or_multiform_post_data()
-        self.assertEqual(result, {'binary_data': 'f9f316e8da9f562aec6661cb120fc230'})
-
-    def test_returns_none_when_file_in_data_but_not_post_method(self):
-        attachment = StringIO('some pdf text from a file').read()
-        self.sut.http_method = 'PUT'
-        self.sut.raw_data = {'file': attachment, 'data': {'filename': 'readme.pdf', 'guid': '1234'}}
-        result = self.sut._data_or_multiform_post_data()
-        self.assertEqual(result, None)
-
-    def test_returns_none_when_post_but_no_file_in_data(self):
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'data': {'filename': 'readme.pdf', 'guid': '1234'}}
-        result = self.sut._data_or_multiform_post_data()
-        self.assertEqual(result, None)
-
-    @mock.patch('generic_request_signer.factory.file_encoding')
-    def test_init_captures_content_type_encodings(self, file_encode):
+    def test_init_captures_content_type_encodings(self):
         with mock.patch('generic_request_signer.factory.json_encoding') as json_encode:
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
-        self.assertEqual(self.sut.content_type_encodings, {'application/json':json_encode, 'multipart/form-data': file_encode})
+        self.assertEqual(self.sut.content_type_encodings, {'application/json':json_encode})
 
     def test_json_encoding_dumps_json_data(self):
         result = json_encoding(['foo', {'bar': ('baz', None, 1.0, 2)}])
@@ -116,35 +92,6 @@ class SignedRequestFactoryTests(unittest.TestCase):
         self.sut._build_signed_url(url)
         get_signature.assert_called_once_with(self.private_key, url, self.sut.raw_data)
 
-    def test_will_modify_the_headers_content_type_to_include_boundary_when_multipart(self):
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'file':''}
-        headers = {'Content-Type':'multipart/form-data'}
-        self.sut.modify_headers_when_multipart(headers)
-        self.assertEqual('multipart/form-data; boundary={}'.format(self.sut.boundary), headers['Content-Type'])
-
-    def test_will_not_modify_the_headers_content_type_when_http_method_is_not_post(self):
-        self.sut.http_method = 'PUT'
-        self.sut.raw_data = {'file':''}
-        headers = {'Content-Type':'multipart/form-data'}
-        self.sut.modify_headers_when_multipart(headers)
-        self.assertEqual('multipart/form-data', headers['Content-Type'])
-
-    def test_will_not_modify_the_headers_content_type_when_raw_data_has_no_file(self):
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'no_binary_data_here':''}
-        headers = {'Content-Type':'multipart/form-data'}
-        self.sut.modify_headers_when_multipart(headers)
-        self.assertEqual('multipart/form-data', headers['Content-Type'])
-
-    def test_invokes_modify_headers_when_multipart_with_request_headers(self):
-        self.sut.raw_data = {'file': 'foo', 'data': {'filename': 'readme.pdf', 'guid': '1234'}}
-        headers = {'Content-Type':'multipart/form-data'}
-        self.sut.http_method = 'POST'
-        with mock.patch.object(self.sut, 'modify_headers_when_multipart') as modify_headers:
-            self.sut._get_data_payload(headers)
-        modify_headers.assert_called_once_with(headers)
-
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_invokes_get_on_internal_payload_when_raw_data_exists_and_not_get_request(self, default_encoding):
         headers = {'Content-Type':'application/json'}
@@ -159,7 +106,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             self.sut._get_data_payload(headers)
-        encodings.get().assert_called_once_with(self.sut.raw_data, self.sut.boundary)
+        encodings.get().assert_called_once_with(self.sut.raw_data)
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_returns_encoding_func_when_raw_data_exists_and_not_get_request(self, default_encoding):
@@ -308,21 +255,6 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
-    @mock.patch('urllib2.Request.__init__')
-    def test_passes_hash_from_binary_to_urllib_request_as_part_of_signature_when_multipart_form_post(self, request):
-        attachment = StringIO('some pdf text from a file').read()
-        self.sut.raw_data = {'file': attachment, 'data': {'filename': 'readme.pdf', 'guid': '1234'}}
-        self.sut.http_method = 'POST'
-        self.sut.create_request('www.myurl.com')
-        #self.assertEqual(urlencode(self.sut.raw_data), urllib2_request.call_args[0][1])
-        url = "www.myurl.com?{}={}&{}={}".format(
-            constants.CLIENT_ID_PARAM_NAME,
-            self.client_id,
-            constants.SIGNATURE_PARAM_NAME,
-            'UJ81GLdrVknMqfVgf88YCzGq_VhwWBfhv-sRD74b_O4='
-        )
-        self.assertEqual(url, request.call_args[0][0])
-
     def test_payload_is_empty_on_get_request_when_signed(self):
         url = "www.myurl.com?asdf=1234"
         self.sut.raw_data = {'asdf': '1234'}
@@ -350,14 +282,14 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         request_headers = {"Content-Type": "application/json"}
         payload_data = self.sut._get_data_payload(request_headers)
         self.assertEqual(encoder.return_value, payload_data)
-        encoder.assert_called_once_with(self.sut.raw_data, self.sut.boundary)
+        encoder.assert_called_once_with(self.sut.raw_data)
 
     def test_get_data_payload_returns_default_encoded_data_when_no_content_type_header(self):
         self.sut.http_method = "POST"
         with mock.patch('generic_request_signer.factory.default_encoding') as encoder:
             payload_data = self.sut._get_data_payload(self.sut.raw_data)
         self.assertEqual(encoder.return_value, payload_data)
-        encoder.assert_called_once_with(self.sut.raw_data, self.sut.boundary)
+        encoder.assert_called_once_with(self.sut.raw_data)
 
     def test_create_request_sends_header_data_to_get_data_payload(self):
         request_kwargs = {"headers": {"Content-Type": "application/json"}}
