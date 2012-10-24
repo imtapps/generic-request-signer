@@ -8,3 +8,4 @@ coverage
 pyflakes
 pep8
 lettuce
+bpython

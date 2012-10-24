@@ -9,7 +9,7 @@ class ClientTests(unittest.TestCase):
     sut_class = client.Client
 
     def setUp(self):
-        self.api_credentials = FakeApiCredentials('/foo', '1', 'bar')
+        self.api_credentials = FakeApiCredentials('/foo', '1', 'YQ==')
         self.sut = self.sut_class(self.api_credentials)
         self.urlopen_patch = mock.patch('urllib2.urlopen')
         self.urlopen = self.urlopen_patch.start()
@@ -30,7 +30,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(self.sut._client_id, '1')
 
     def test_private_key_property_returns_api_credentials_private_key_value(self):
-        self.assertEqual(self.sut._private_key, 'bar')
+        self.assertEqual(self.sut._private_key, 'YQ==')
 
     def test_get_service_url_returns_valid_endpoint(self):
         self.assertEqual(self.sut._get_service_url('/bazz/'), '/foo/bazz/')
@@ -47,7 +47,7 @@ class ClientTests(unittest.TestCase):
         kwargs = {'some':'kwarg'}
         with mock.patch.object(self.sut_class, '_get_request') as get_request:
             self.sut._get_response(method, endpoint, data, **kwargs)
-        get_request.assert_called_once_with(method, endpoint, data, **kwargs)
+        get_request.assert_called_once_with(method, endpoint, data, None, **kwargs)
 
     def test_get_response_instantiates_response_with_urlopen_result(self):
         with mock.patch.object(self.sut_class, '_get_request'):
@@ -69,7 +69,12 @@ class ClientTests(unittest.TestCase):
     def test_get_request_instantiates_factory_with_params(self):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             self.sut._get_request('GET', '/', {}, **{})
-        factory.assert_called_once_with('GET', '1', 'bar', {})
+        factory.assert_called_once_with('GET', '1', 'YQ==', {}, None)
+
+    def test_get_request_instantiates_multipart_factory_with_params_when_files(self):
+        with mock.patch('generic_request_signer.factory.MultipartSignedRequestFactory') as factory:
+            self.sut._get_request('GET', '/', {}, files={'f': ('f', 'f')}, **{})
+        factory.assert_called_once_with('GET', '1', 'YQ==', {}, {'f': ('f', 'f')})
 
     def test_get_request_invokes_create_request_on_factory(self):
         data = {'some':'data'}
