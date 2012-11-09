@@ -4,7 +4,7 @@ from exceptions import HttpMethodNotAllowed
 
 class Request(urllib2.Request, object):
 
-    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options', 'trace']
+    http_method_names = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace']
 
     def __init__(self, http_method, url, data, *args, **kwargs):
         method_lower = http_method.lower()
