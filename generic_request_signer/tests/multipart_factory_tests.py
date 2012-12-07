@@ -39,6 +39,20 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
             'Content-Type: image/jpeg', '', 'f2'
         ]], result)
 
+
+    def test_get_multipart_fields_returns_list_of_fields_when_value_is_not_string(self):
+        sut = MultipartSignedRequestFactory(None, None, None, None)
+        result = sut.get_multipart_fields({'field1': 'v1', 'field2': 1234})
+        self.assertItemsEqual([[
+            sut.part_boundary,
+            'Content-Disposition: form-data; name="field1"',
+            '', 'v1'
+        ], [
+            sut.part_boundary,
+            'Content-Disposition: form-data; name="field2"',
+            '', '1234'
+        ]], result)
+
     def test_get_multipart_fields_returns_list_of_fields(self):
         sut = MultipartSignedRequestFactory(None, None, None, None)
         result = sut.get_multipart_fields({'field1': 'v1', 'field2': 'v2'})

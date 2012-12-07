@@ -85,7 +85,7 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
 
     def get_multipart_fields(self, data):
         for name, value in data.items():
-            yield [self.part_boundary, self.FIELD.format(name), '', value]
+            yield [self.part_boundary, self.FIELD.format(name), '', str(value)]
 
     def get_multipart_files(self):
         for field_name, (filename, body) in self.files.items():
