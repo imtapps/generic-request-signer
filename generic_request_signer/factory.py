@@ -7,8 +7,10 @@ import request
 import apysigner
 from urllib import urlencode
 
+
 def default_encoding(raw_data, *args):
     return urlencode(raw_data, doseq=True)
+
 
 def json_encoding(raw_data, *args):
     return json.dumps(raw_data)
@@ -33,24 +35,27 @@ class SignedRequestFactory(object):
 
     def build_request_url(self, url):
         url = self._build_client_url(url)
-        if self._is_get_request_with_data():
+        if self.should_data_be_sent_on_querystring():
             url += "&{0}".format(urlencode(self.raw_data))
         return self._build_signed_url(url)
 
     def _build_signed_url(self, url):
-        data = {} if self._is_get_request_with_data() else self.raw_data
+        data = {} if self.should_data_be_sent_on_querystring() else self.raw_data
         signature = apysigner.get_signature(self.private_key, url, data)
         signed_url = url + "&{}={}".format(constants.SIGNATURE_PARAM_NAME, signature)
         return signed_url
 
     def _get_data_payload(self, request_headers):
-        if self.raw_data and self.http_method.lower() != 'get':
+        if self.raw_data and not self.method_uses_querystring():
             content_type = request_headers.get("Content-Type")
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
             return encoding_func(self.raw_data)
 
-    def _is_get_request_with_data(self):
-        return self.http_method.lower() == 'get' and self.raw_data
+    def should_data_be_sent_on_querystring(self):
+        return self.method_uses_querystring() and self.raw_data
+
+    def method_uses_querystring(self):
+        return self.http_method.lower() in ('get', 'delete')
 
     def _build_client_url(self, url):
         url += "?%s=%s" % (constants.CLIENT_ID_PARAM_NAME, self.client_id)

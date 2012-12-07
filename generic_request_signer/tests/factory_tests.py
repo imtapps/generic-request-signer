@@ -242,6 +242,20 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
     @mock.patch('urllib2.Request.__init__')
+    def test_urlencodes_data_as_part_of_url_when_method_is_delete(self, urllib2_request):
+        self.sut.http_method = 'DELETE'
+        self.sut.raw_data = {'some':'da ta', 'goes':'he re'}
+        self.sut.create_request('www.myurl.com')
+        self.assertEqual(None, urllib2_request.call_args[0][1])
+        url = "www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
+            constants.CLIENT_ID_PARAM_NAME,
+            self.client_id,
+            constants.SIGNATURE_PARAM_NAME,
+            '6dBfb4JhoJIm7FyzktbhFxBFyLBPTmXn-MLkV-RXLng='
+        )
+        self.assertEqual(url, urllib2_request.call_args[0][0])
+
+    @mock.patch('urllib2.Request.__init__')
     def test_passes_data_to_urllib_request_when_method_is_not_get(self, urllib2_request):
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.http_method = 'POST'
