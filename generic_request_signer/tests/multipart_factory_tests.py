@@ -27,18 +27,29 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual('field1\r\nval1\r\nfield2\r\nval2\r\n--{}--\r\n'.format(sut.boundary), result)
 
     def test_get_multipart_files_returns_list_of_files(self):
-        sut = MultipartSignedRequestFactory(None, None, None, None, files={'file1': ('file1.jpeg', StringIO("f1")), 'file2': ('file2.jpeg', StringIO("f2"))})
+        first = {'file': ('file1.jpeg', StringIO("f1"))}
+        second = {'file': ('file2.jpeg', StringIO("f2"))}
+        sut = MultipartSignedRequestFactory(None, None, None, None, files=[first, second])
         result = sut.get_multipart_files()
         self.assertItemsEqual([[
             sut.part_boundary,
-            'Content-Disposition: file; name="file1"; filename="file1.jpeg"',
+            'Content-Disposition: file; name="file"; filename="file1.jpeg"',
             'Content-Type: image/jpeg', '', 'f1'
         ], [
             sut.part_boundary,
-            'Content-Disposition: file; name="file2"; filename="file2.jpeg"',
+            'Content-Disposition: file; name="file"; filename="file2.jpeg"',
             'Content-Type: image/jpeg', '', 'f2'
         ]], result)
 
+    def test_get_multipart_files_returns_list_of_files_even_with_singular_file(self):
+        files = {'file': ('file1.jpeg', StringIO("f1"))}
+        sut = MultipartSignedRequestFactory(None, None, None, None, files=files)
+        result = sut.get_multipart_files()
+        self.assertItemsEqual([[
+            sut.part_boundary,
+            'Content-Disposition: file; name="file"; filename="file1.jpeg"',
+            'Content-Type: image/jpeg', '', 'f1'
+        ]], result)
 
     def test_get_multipart_fields_returns_list_of_fields_when_value_is_not_string(self):
         sut = MultipartSignedRequestFactory(None, None, None, None)

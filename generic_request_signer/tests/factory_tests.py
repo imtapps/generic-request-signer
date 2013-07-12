@@ -315,3 +315,13 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         with mock.patch.object(self.sut, "_get_data_payload") as get_payload:
             self.sut.create_request("/")
         get_payload.assert_called_once_with({})
+
+    def test_input_files_property_will_wrap_single_file_in_list(self):
+        files = {'file': ('name', 'file data')}
+        self.sut.files = files
+        self.assertEqual([files], self.sut.input_files)
+
+    def test_input_files_property_will_not_wrap_list_of_files_in_list(self):
+        files = [{'file': ('name', 'file data')}]
+        self.sut.files = files
+        self.assertEqual(files, self.sut.input_files)

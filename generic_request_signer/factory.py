@@ -28,6 +28,10 @@ class SignedRequestFactory(object):
             'application/json': json_encoding,
         }
 
+    @property
+    def input_files(self):
+        return [self.files] if type(self.files) != list else self.files
+
     def create_request(self, url, *args, **request_kwargs):
         url = self.build_request_url(url)
         data = self._get_data_payload(request_kwargs.get("headers", {}))
@@ -93,11 +97,12 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
             yield [self.part_boundary, self.FIELD.format(name), '', str(value)]
 
     def get_multipart_files(self):
-        for field_name, (filename, body) in self.files.items():
-            yield [
-                self.part_boundary, self.FILE.format(field_name, filename),
-                self.get_content_type(filename), '', body.read()
-            ]
+        for input_file in self.input_files:
+            for field_name, (filename, body) in input_file.items():
+                yield [
+                    self.part_boundary, self.FILE.format(field_name, filename),
+                    self.get_content_type(filename), '', body.read()
+                ]
 
     def get_content_type(self, filename):
         return 'Content-Type: {}'.format(mimetypes.guess_type(filename)[0] or 'application/octet-stream')
