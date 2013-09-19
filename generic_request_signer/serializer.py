@@ -1,4 +1,5 @@
 from datetime import datetime
+import decimal
 import json
 
 
@@ -16,5 +17,7 @@ def json_date_object_hook(obj):
 class JsonSerializer(object):
 
     def serialize(self, data):
+        print json.loads(data)
         return json.loads(data, object_hook=json_date_object_hook)
+        # return json.loads(data, object_hook=json_date_object_hook, parse_float=decimal.Decimal)
 
