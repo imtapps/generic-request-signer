@@ -1,6 +1,8 @@
 import mock
 import urllib2
 import unittest
+from datetime import date
+from decimal import Decimal
 from generic_request_signer import client
 
 
@@ -86,6 +88,11 @@ class ClientTests(unittest.TestCase):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             result = self.sut._get_request('GET', '/', {}, **{})
         self.assertEqual(result, factory.return_value.create_request.return_value)
+
+    def test_serialize_json_returns_correctly_formatted_json_from_python_object(self):
+        data = {'thing': 'one', 'decimalz': Decimal(10.01), 'datez': date(1900, 2, 28), 'empty': None}
+        expected_json = '{"thing": "one", "datez": "1900-02-28", "decimalz": "10.0099999999999997868371792719699442386627197265625", "empty": null}'
+        self.assertEqual(expected_json, self.sut.serialize_json(data))
 
 
 class FakeApiCredentials(object):

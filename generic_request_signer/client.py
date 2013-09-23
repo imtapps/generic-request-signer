@@ -1,6 +1,16 @@
+from datetime import date
 import urllib2
 import response
 import factory
+import json
+import decimal
+
+
+def json_custom_encoder(obj):
+    if isinstance(obj, date):
+        return obj.isoformat()
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
 
 
 class Client(object):
@@ -28,6 +38,9 @@ class Client(object):
 
     def _get_service_url(self, endpoint):
         return self._base_url + endpoint
+
+    def serialize_json(self, data):
+        return json.dumps(data, default=json_custom_encoder)
 
     @property
     def _base_url(self):
