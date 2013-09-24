@@ -1,3 +1,5 @@
+from datetime import date
+import decimal
 import json
 import itertools
 import mimetools
@@ -6,6 +8,13 @@ import constants
 import request
 import apysigner
 from urllib import urlencode
+
+
+def json_encoder(obj):
+    if isinstance(obj, date):
+        return str(obj.isoformat())
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
 
 
 def default_encoding(raw_data, *args):
@@ -33,21 +42,28 @@ class SignedRequestFactory(object):
         return [self.files] if type(self.files) != list else self.files
 
     def create_request(self, url, *args, **request_kwargs):
-        url = self.build_request_url(url)
-        data = self._get_data_payload(request_kwargs.get("headers", {}))
+        headers = request_kwargs.get("headers", {})
+        url = self.build_request_url(url, headers)
+        data = self._get_data_payload(headers)
         return request.Request(self.http_method, url, data, *args, **request_kwargs)
 
-    def build_request_url(self, url):
+    def build_request_url(self, url, headers):
         url = self._build_client_url(url)
         if self.should_data_be_sent_on_querystring():
             url += "&{0}".format(urlencode(self.raw_data))
-        return self._build_signed_url(url)
+        return self._build_signed_url(url, headers)
 
-    def _build_signed_url(self, url):
-        data = {} if self.should_data_be_sent_on_querystring() else self.raw_data
+    def _build_signed_url(self, url, headers):
+        data = {} if self.should_data_be_sent_on_querystring() else self._build_signature_friendly_dict_for_content_type(headers)
         signature = apysigner.get_signature(self.private_key, url, data)
         signed_url = url + "&{}={}".format(constants.SIGNATURE_PARAM_NAME, signature)
         return signed_url
+
+    def _build_signature_friendly_dict_for_content_type(self, headers):
+        content_type = headers.get("Content-Type")
+        if content_type and content_type == "application/json":
+            return json.loads(json.dumps(self.raw_data, default=json_encoder))
+        return self.raw_data
 
     def _get_data_payload(self, request_headers):
         if self.raw_data and not self.method_uses_querystring():
@@ -76,7 +92,8 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
         self.part_boundary = "--" + self.boundary
 
     def create_request(self, url, *args, **request_kwargs):
-        url = self.build_request_url(url)
+        headers = request_kwargs.get("headers", {})
+        url = self.build_request_url(url, headers)
         body = self.get_multipart_body(self.raw_data)
         return self._build_request(body, url)
 

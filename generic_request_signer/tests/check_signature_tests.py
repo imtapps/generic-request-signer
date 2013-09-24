@@ -16,6 +16,7 @@ class CheckSignatureForBinaryTests(unittest.TestCase):
         check_signature.check_signature_for_binary(signature, private_key, url_path, payload)
         check_signature_mock.assert_called_once_with(signature, private_key, url_path, expected_payload)
 
+
 class CheckSignatureTests(unittest.TestCase):
 
     def setUp(self):
