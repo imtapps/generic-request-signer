@@ -22,7 +22,7 @@ def default_encoding(raw_data, *args):
 
 
 def json_encoding(raw_data, *args):
-    return json.dumps(raw_data)
+    return json.dumps(raw_data, default=json_encoder)
 
 
 class SignedRequestFactory(object):
@@ -62,7 +62,8 @@ class SignedRequestFactory(object):
     def _build_signature_friendly_dict_for_content_type(self, headers):
         content_type = headers.get("Content-Type")
         if content_type and content_type == "application/json":
-            return json.loads(json.dumps(self.raw_data, default=json_encoder))
+            encoding_func = self.content_type_encodings.get(content_type, default_encoding)
+            return json.loads(encoding_func(self.raw_data))
         return self.raw_data
 
     def _get_data_payload(self, request_headers):

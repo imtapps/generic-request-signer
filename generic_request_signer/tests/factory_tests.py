@@ -136,11 +136,19 @@ class SignedRequestFactoryTests(unittest.TestCase):
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_returns_encoding_func_when_raw_data_exists_and_not_get_request(self, default_encoding):
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             result = self.sut._get_data_payload(headers)
         self.assertEqual(result, encodings.get().return_value)
+
+    def test_get_data_payload_returns_encoded_json_when_raw_data_has_datetime_decimal_or_none_types(self):
+        headers = {'Content-Type': 'application/json'}
+        self.sut.http_method = 'POST'
+        self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
+        result = self.sut._get_data_payload(headers)
+        expected_json = '{"date": "1900-01-02", "foo": "100.1200000000000045474735088646411895751953125", "empty": null}'
+        self.assertEqual(result, expected_json)
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_does_not_invoke_get_on_internal_payload_when_no_raw_data_exists(self, default_encoding):
