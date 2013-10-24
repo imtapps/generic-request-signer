@@ -359,3 +359,11 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         files = [{'file': ('name', 'file data')}]
         self.sut.files = files
         self.assertEqual(files, self.sut.input_files)
+
+    def test_will_flatten_nested_list_on_querystring_for_get_requests(self):
+        self.sut.raw_data = {'items': ['a', 'b', 'c', 'd']}
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'GET'
+        self.sut.client_id = 'foobar'
+        result = self.sut.build_request_url(url, {})
+        self.assertIn('&items=a&items=b&items=c&items=d', result)
