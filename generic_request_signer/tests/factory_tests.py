@@ -42,25 +42,21 @@ class SignedRequestFactoryTests(unittest.TestCase):
         result = default_encoding({'foo':'bar', 'baz':'broken'})
         self.assertEqual(result, 'foo=bar&baz=broken')
 
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_for_get_request_returns_url_with_data_client_id_and_signature(self, get_signature):
-        get_signature.return_value = 'zzz123'
+    def test_build_signed_url_for_get_request_returns_url_with_data_client_id_and_signature(self):
         self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
         url = 'http://bit.ly/'
         self.sut.http_method = 'GET'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&username=some.user&token=813bc1ad91dfadsfsdfsd02c&__signature=zzz123')
+        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&username=some.user&token=813bc1ad91dfadsfsdfsd02c&__signature=xfK_-z48Wh4vsEG-NoSN3FzE-2gO82cQvvVKjuB4qHs=')
 
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_for_post_request_returns_url_with_only_client_id_and_signature(self, get_signature):
-        get_signature.return_value = 'zzz123'
+    def test_build_signed_url_for_post_request_returns_url_with_only_client_id_and_signature(self):
         self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
         url = 'http://bit.ly/'
         self.sut.http_method = 'POST'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&__signature=zzz123')
+        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&__signature=mZ9tW9jlsmJ78fYvjO06LBLiY0COSAeYMHgqPE0Tb7s=')
 
     @mock.patch('apysigner.get_signature')
     def test_build_signed_url_for_get_request_without_raw_data_returns_url_with_only_client_id_and_signature(self, get_signature):
