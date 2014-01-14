@@ -10,19 +10,12 @@ import apysigner
 from urllib import urlencode
 
 
-def json_encoder(obj):
-    if isinstance(obj, date):
-        return str(obj.isoformat())
-    if isinstance(obj, decimal.Decimal):
-        return str(obj)
-
-
 def default_encoding(raw_data, *args):
     return urlencode(raw_data, doseq=True)
 
 
 def json_encoding(raw_data, *args):
-    return json.dumps(raw_data, default=json_encoder)
+    return raw_data
 
 
 class SignedRequestFactory(object):
@@ -63,7 +56,7 @@ class SignedRequestFactory(object):
         content_type = headers.get("Content-Type")
         if content_type and content_type == "application/json":
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
-            return json.loads(encoding_func(self.raw_data))
+            return encoding_func(self.raw_data)
         return self.raw_data
 
     def _get_data_payload(self, request_headers):

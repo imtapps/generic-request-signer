@@ -34,9 +34,9 @@ class SignedRequestFactoryTests(unittest.TestCase):
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
         self.assertEqual(self.sut.content_type_encodings, {'application/json':json_encode})
 
-    def test_json_encoding_dumps_json_data(self):
-        result = json_encoding(['foo', {'bar': ('baz', None, 1.0, 2)}])
-        self.assertEqual(result, '["foo", {"bar": ["baz", null, 1.0, 2]}]')
+    def test_json_encoding_dumps_json_data_verbatim(self):
+        result = json_encoding("['foo', {'bar': ('baz', null, 1.0, 2)}]")
+        self.assertEqual(result, "['foo', {'bar': ('baz', null, 1.0, 2)}]")
 
     def test_default_encoding_encodes_url_data(self):
         result = default_encoding({'foo':'bar', 'baz':'broken'})
@@ -103,9 +103,9 @@ class SignedRequestFactoryTests(unittest.TestCase):
     def test_build_signed_url_invokes_get_signature_with_json_turned_dict_when_post_request_is_application_json(self, get_signature):
         url = 'http://bit.ly/'
         self.sut.http_method = 'POST'
-        self.sut.raw_data = {'date': datetime.date(1900, 1, 2)}
+        self.sut.raw_data = '{"date": "1900-01-02"}'
         self.sut._build_signed_url(url, {"Content-Type": "application/json"})
-        get_signature.assert_called_once_with(self.private_key, url, {'date': "1900-01-02"})
+        get_signature.assert_called_once_with(self.private_key, url, '{"date": "1900-01-02"}')
 
     def test_build_signature_friendly_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
@@ -137,14 +137,6 @@ class SignedRequestFactoryTests(unittest.TestCase):
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             result = self.sut._get_data_payload(headers)
         self.assertEqual(result, encodings.get().return_value)
-
-    def test_get_data_payload_returns_encoded_json_when_raw_data_has_datetime_decimal_or_none_types(self):
-        headers = {'Content-Type': 'application/json'}
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
-        result = self.sut._get_data_payload(headers)
-        expected_json = '{"date": "1900-01-02", "foo": "100.1200000000000045474735088646411895751953125", "empty": null}'
-        self.assertEqual(result, expected_json)
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_does_not_invoke_get_on_internal_payload_when_no_raw_data_exists(self, default_encoding):
@@ -319,21 +311,15 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual(None, payload_data)
 
     def test_get_data_payload_returns_properly_encoded_data_when_content_type_header_present(self):
-        encoder = mock.MagicMock()
         self.sut.http_method = "POST"
-        self.sut.content_type_encodings = {"application/json": encoder}
-
         request_headers = {"Content-Type": "application/json"}
         payload_data = self.sut._get_data_payload(request_headers)
-        self.assertEqual(encoder.return_value, payload_data)
-        encoder.assert_called_once_with(self.sut.raw_data)
+        self.assertEqual({'some':'data'}, payload_data)
 
     def test_get_data_payload_returns_default_encoded_data_when_no_content_type_header(self):
         self.sut.http_method = "POST"
-        with mock.patch('generic_request_signer.factory.default_encoding') as encoder:
-            payload_data = self.sut._get_data_payload(self.sut.raw_data)
-        self.assertEqual(encoder.return_value, payload_data)
-        encoder.assert_called_once_with(self.sut.raw_data)
+        payload_data = self.sut._get_data_payload(self.sut.raw_data)
+        self.assertEqual('some=data', payload_data)
 
     def test_create_request_sends_header_data_to_get_data_payload(self):
         request_kwargs = {"headers": {"Content-Type": "application/json"}}
