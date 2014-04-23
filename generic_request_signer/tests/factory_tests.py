@@ -1,10 +1,10 @@
-from cStringIO import StringIO
 import datetime
-from decimal import Decimal
 import mock
 import unittest
+from decimal import Decimal
 from urllib import urlencode
 from collections import OrderedDict
+
 from generic_request_signer import constants
 from generic_request_signer.factory import SignedRequestFactory, json_encoding, default_encoding
 
@@ -17,7 +17,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
         self.method = 'GET'
         self.private_key = '1234'
         self.client_id = 'foobar'
-        self.raw_data = {'some':'data'}
+        self.raw_data = {'some': 'data'}
         self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.raw_data)
 
     def test_init_captures_incoming_client_id(self):
@@ -32,91 +32,26 @@ class SignedRequestFactoryTests(unittest.TestCase):
     def test_init_captures_content_type_encodings(self):
         with mock.patch('generic_request_signer.factory.json_encoding') as json_encode:
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
-        self.assertEqual(self.sut.content_type_encodings, {'application/json':json_encode})
+        self.assertEqual(self.sut.content_type_encodings, {'application/json': json_encode})
 
     def test_json_encoding_dumps_json_data_verbatim(self):
         result = json_encoding("['foo', {'bar': ('baz', null, 1.0, 2)}]")
         self.assertEqual(result, "['foo', {'bar': ('baz', null, 1.0, 2)}]")
 
     def test_default_encoding_encodes_url_data(self):
-        result = default_encoding({'foo':'bar', 'baz':'broken'})
+        result = default_encoding({'foo': 'bar', 'baz': 'broken'})
         self.assertEqual(result, 'foo=bar&baz=broken')
 
-    def test_build_signed_url_for_get_request_returns_url_with_data_client_id_and_signature(self):
-        self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'GET'
-        self.sut.client_id = 'foobar'
-        result = self.sut.build_request_url(url, {})
-        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&username=some.user&token=813bc1ad91dfadsfsdfsd02c&__signature=xfK_-z48Wh4vsEG-NoSN3FzE-2gO82cQvvVKjuB4qHs=')
-
-    def test_build_signed_url_for_post_request_returns_url_with_only_client_id_and_signature(self):
-        self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'POST'
-        self.sut.client_id = 'foobar'
-        result = self.sut.build_request_url(url, {})
-        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&__signature=mZ9tW9jlsmJ78fYvjO06LBLiY0COSAeYMHgqPE0Tb7s=')
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_for_get_request_without_raw_data_returns_url_with_only_client_id_and_signature(self, get_signature):
-        get_signature.return_value = 'zzz123'
-        self.sut.raw_data = None
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'GET'
-        self.sut.client_id = 'foobar'
-        result = self.sut.build_request_url(url, {})
-        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&__signature=zzz123')
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_invokes_get_signature_with_no_data_when_get_request_and_valid_data(self, get_signature):
-        url = 'http://bit.ly/'
-        self.sut.raw_data = {'some': 'data'}
-        self.sut.http_method = 'GET'
-        self.sut._build_signed_url(url, {})
-        get_signature.assert_called_once_with(self.private_key, url, {})
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_invokes_get_signature_with_data_input_when_get_request_but_invalid_data(self, get_signature):
-        url = 'http://bit.ly/'
-        self.sut.raw_data = None
-        self.sut.http_method = 'GET'
-        self.sut._build_signed_url(url, {})
-        get_signature.assert_called_once_with(self.private_key, url, None)
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_invokes_get_signature_with_raw_data_when_post_request(self, get_signature):
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'POST'
-        self.sut._build_signed_url(url, {})
-        get_signature.assert_called_once_with(self.private_key, url, self.sut.raw_data)
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_invokes_get_signature_with_raw_data_when_post_request_is_form_urlencoded(self, get_signature):
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = {'date': datetime.date(1900, 1, 2)}
-        self.sut._build_signed_url(url, {"Content-Type": "application/x-www-form-urlencoded"})
-        get_signature.assert_called_once_with(self.private_key, url, {'date': datetime.date(1900, 1, 2)})
-
-    @mock.patch('apysigner.get_signature')
-    def test_build_signed_url_invokes_get_signature_with_json_turned_dict_when_post_request_is_application_json(self, get_signature):
-        url = 'http://bit.ly/'
-        self.sut.http_method = 'POST'
-        self.sut.raw_data = '{"date": "1900-01-02"}'
-        self.sut._build_signed_url(url, {"Content-Type": "application/json"})
-        get_signature.assert_called_once_with(self.private_key, url, '{"date": "1900-01-02"}')
-
-    def test_build_signature_friendly_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
+    def test_build_signature_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
-        result = self.sut._build_signature_friendly_dict_for_content_type({"Content-Type": "application/json"})
+        result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/json"})
         self.assertItemsEqual(result, {u"date": u"1900-01-02",
                                        u"foo": u"100.1200000000000045474735088646411895751953125",
                                        u"empty": None})
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_invokes_get_on_internal_payload_when_raw_data_exists_and_not_get_request(self, default_encoding):
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             self.sut._get_data_payload(headers)
@@ -349,3 +284,79 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
         self.assertIn('&items=a&items=b&items=c&items=d', result)
+
+
+class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
+
+    def test_get_request_returns_url_with_data_client_id_and_signature(self):
+        self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'GET'
+        self.sut.client_id = 'foobar'
+        result = self.sut.build_request_url(url, {})
+        url = [
+            'http://bit.ly/',
+            '?__client_id=foobar',
+            '&username=some.user',
+            '&token=813bc1ad91dfadsfsdfsd02c',
+            '&__signature=xfK_-z48Wh4vsEG-NoSN3FzE-2gO82cQvvVKjuB4qHs='
+        ]
+        self.assertEqual(result, url.join(''))
+
+    def test_post_request_returns_url_with_only_client_id_and_signature(self):
+        self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'POST'
+        self.sut.client_id = 'foobar'
+        result = self.sut.build_request_url(url, {})
+        expected_url = 'http://bit.ly/?__client_id=foobar&__signature=mZ9tW9jlsmJ78fYvjO06LBLiY0COSAeYMHgqPE0Tb7s='
+        self.assertEqual(result, expected_url)
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_request_without_raw_data_returns_url_without_querystring(self, get_signature):
+        get_signature.return_value = 'zzz123'
+        self.sut.raw_data = None
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'GET'
+        self.sut.client_id = 'foobar'
+        result = self.sut.build_request_url(url, {})
+        self.assertEqual(result, 'http://bit.ly/?__client_id=foobar&__signature=zzz123')
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_signature_invoked_with_no_data_when_get_request_and_valid_data(self, get_signature):
+        url = 'http://bit.ly/'
+        self.sut.raw_data = {'some': 'data'}
+        self.sut.http_method = 'GET'
+        self.sut._build_signed_url(url, {})
+        get_signature.assert_called_once_with(self.private_key, url, {})
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_signature_invoked_with_data_when_get_request_but_invalid_data(self, get_signature):
+        url = 'http://bit.ly/'
+        self.sut.raw_data = None
+        self.sut.http_method = 'GET'
+        self.sut._build_signed_url(url, {})
+        get_signature.assert_called_once_with(self.private_key, url, None)
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_signature_invoked_with_raw_data_when_post_request(self, get_signature):
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'POST'
+        self.sut._build_signed_url(url, {})
+        get_signature.assert_called_once_with(self.private_key, url, self.sut.raw_data)
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_signature_invoked_with_raw_data_when_posted_as_form_urlencoded(self, get_signature):
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'POST'
+        self.sut.raw_data = {'date': datetime.date(1900, 1, 2)}
+        self.sut._build_signed_url(url, {"Content-Type": "application/x-www-form-urlencoded"})
+        get_signature.assert_called_once_with(self.private_key, url, {'date': datetime.date(1900, 1, 2)})
+
+    @mock.patch('apysigner.get_signature')
+    def test_get_signature_invoked_with_json_turned_dict_when_posted_as_application_json(self, get_signature):
+        url = 'http://bit.ly/'
+        self.sut.http_method = 'POST'
+        self.sut.raw_data = '{"date": "1900-01-02"}'
+        self.sut._build_signed_url(url, {"Content-Type": "application/json"})
+        get_signature.assert_called_once_with(self.private_key, url, '{"date": "1900-01-02"}')

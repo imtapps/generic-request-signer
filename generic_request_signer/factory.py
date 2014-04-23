@@ -1,12 +1,10 @@
-from datetime import date
-import decimal
-import json
+import apysigner
+import constants
 import itertools
 import mimetools
 import mimetypes
-import constants
 import request
-import apysigner
+
 from urllib import urlencode
 
 
@@ -47,12 +45,12 @@ class SignedRequestFactory(object):
         return self._build_signed_url(url, headers)
 
     def _build_signed_url(self, url, headers):
-        data = {} if self.should_data_be_sent_on_querystring() else self._build_signature_friendly_dict_for_content_type(headers)
+        data = {} if self.should_data_be_sent_on_querystring() else self._build_signature_dict_for_content_type(headers)
         signature = apysigner.get_signature(self.private_key, url, data)
         signed_url = url + "&{}={}".format(constants.SIGNATURE_PARAM_NAME, signature)
         return signed_url
 
-    def _build_signature_friendly_dict_for_content_type(self, headers):
+    def _build_signature_dict_for_content_type(self, headers):
         content_type = headers.get("Content-Type")
         if content_type and content_type == "application/json":
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
