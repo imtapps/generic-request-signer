@@ -50,7 +50,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
                                        u"empty": None})
 
     @mock.patch('generic_request_signer.factory.default_encoding')
-    def test_get_data_payload_invokes_get_on_internal_payload_when_raw_data_exists_and_not_get_request(self, default_encoding):
+    def test_gets_encoder_when_data_and_method_does_not_use_querystring(self, default_encoding):
         headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
@@ -58,8 +58,8 @@ class SignedRequestFactoryTests(unittest.TestCase):
         encodings.get.assert_called_once_with('application/json', default_encoding)
 
     @mock.patch('generic_request_signer.factory.default_encoding')
-    def test_get_data_payload_constructs_func_with_raw_data_when_raw_data_exists_and_not_get_request(self, default_encoding):
-        headers = {'Content-Type':'application/json'}
+    def test_encodes_data_when_data_and_method_does_not_use_querystring(self, default_encoding):
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             self.sut._get_data_payload(headers)
@@ -76,7 +76,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_does_not_invoke_get_on_internal_payload_when_no_raw_data_exists(self, default_encoding):
         self.sut.raw_data = None
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             self.sut._get_data_payload(headers)
@@ -85,7 +85,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_returns_none_when_no_raw_data_exists(self, default_encoding):
         self.sut.raw_data = None
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'POST'
         with mock.patch.object(self.sut, 'content_type_encodings'):
             result = self.sut._get_data_payload(headers)
@@ -93,7 +93,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_does_not_invoke_get_on_internal_payload_when_http_get(self, default_encoding):
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'GET'
         with mock.patch.object(self.sut, 'content_type_encodings') as encodings:
             self.sut._get_data_payload(headers)
@@ -101,7 +101,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_returns_none_when_http_get(self, default_encoding):
-        headers = {'Content-Type':'application/json'}
+        headers = {'Content-Type': 'application/json'}
         self.sut.http_method = 'GET'
         with mock.patch.object(self.sut, 'content_type_encodings'):
             result = self.sut._get_data_payload(headers)
@@ -131,7 +131,7 @@ class SignedRequestFactoryTests(unittest.TestCase):
     @mock.patch('generic_request_signer.factory.SignedRequestFactory.build_request_url', mock.Mock)
     @mock.patch('generic_request_signer.factory.SignedRequestFactory._get_data_payload')
     def test_create_request_invokes_get_data_payload_with_params(self, get_payload):
-        kwargs = {'headers':'foo'}
+        kwargs = {'headers': 'foo'}
         self.sut.create_request('/foo/', **kwargs)
         get_payload.assert_called_once_with(kwargs.get('headers', {}))
 
@@ -140,8 +140,8 @@ class SignedRequestFactoryTests(unittest.TestCase):
     @mock.patch('generic_request_signer.factory.SignedRequestFactory.build_request_url')
     def test_create_request_build_actual_request_object_with_params(self, build_url, get_payload, request):
         url = '/foo/'
-        args = {'random':'stuff'}
-        kwargs = {'headers':'foo'}
+        args = {'random': 'stuff'}
+        kwargs = {'headers': 'foo'}
         self.sut.http_method = 'GET'
         self.sut.create_request(url, *args, **kwargs)
         request.assert_called_once_with('GET', build_url.return_value, get_payload.return_value, *args, **kwargs)
@@ -153,12 +153,13 @@ class SignedRequestFactoryTests(unittest.TestCase):
         result = self.sut.create_request('/foo/', {})
         self.assertEqual(result, request.return_value)
 
+
 class LegacySignedRequestFactoryTests(unittest.TestCase):
 
     def setUp(self):
         self.client_id = 'client_id'
         self.private_key = 'oVB_b3qrP3R6IDApALqehQzFy3DpMfob6Y4627WEK5A='
-        self.raw_data = {'some':'data'}
+        self.raw_data = {'some': 'data'}
         self.sut = SignedRequestFactory('GET', self.client_id, self.private_key, self.raw_data)
 
     def test_sets_client_id_in_init(self):
@@ -187,28 +188,28 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
 
     @mock.patch('urllib2.Request.__init__')
     def test_urlencodes_data_as_part_of_url_when_method_is_get(self, urllib2_request):
-        self.sut.raw_data = {'some':'da ta', 'goes':'he re'}
-        self.sut.create_request('www.myurl.com')
+        self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
+        self.sut.create_request('http://www.myurl.com')
         self.assertEqual(None, urllib2_request.call_args[0][1])
-        url = "www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
+        url = "http://www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            '6dBfb4JhoJIm7FyzktbhFxBFyLBPTmXn-MLkV-RXLng='
+            'Npe9c-jKl2KhwGqvI8-DYxLQMqEm41swdGkQfQ9--lM='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
     @mock.patch('urllib2.Request.__init__')
     def test_urlencodes_data_as_part_of_url_when_method_is_delete(self, urllib2_request):
         self.sut.http_method = 'DELETE'
-        self.sut.raw_data = {'some':'da ta', 'goes':'he re'}
-        self.sut.create_request('www.myurl.com')
+        self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
+        self.sut.create_request('http://www.myurl.com')
         self.assertEqual(None, urllib2_request.call_args[0][1])
-        url = "www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
+        url = "http://www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            '6dBfb4JhoJIm7FyzktbhFxBFyLBPTmXn-MLkV-RXLng='
+            'Npe9c-jKl2KhwGqvI8-DYxLQMqEm41swdGkQfQ9--lM='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
@@ -216,18 +217,18 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
     def test_passes_data_to_urllib_request_when_method_is_not_get(self, urllib2_request):
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.http_method = 'POST'
-        self.sut.create_request('www.myurl.com')
+        self.sut.create_request('https://www.myurl.com')
         self.assertEqual(urlencode(self.sut.raw_data), urllib2_request.call_args[0][1])
-        url = "www.myurl.com?{}={}&{}={}".format(
+        url = "https://www.myurl.com?{}={}&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            '3sh6DOlYgbsCGT5rNlY819eFAdfl6Fy9GiyHHgUAwLQ='
+            'cbseuxu6jVikia-u_Qxf5a4v3DKvyrkxjFSj4pnIHVw='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
     def test_payload_is_empty_on_get_request_when_signed(self):
-        url = "www.myurl.com?asdf=1234"
+        url = "http://www.myurl.com?asdf=1234"
         self.sut.raw_data = {'asdf': '1234'}
 
         first_request = self.sut._build_signed_url(url, {})
@@ -249,7 +250,7 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         self.sut.http_method = "POST"
         request_headers = {"Content-Type": "application/json"}
         payload_data = self.sut._get_data_payload(request_headers)
-        self.assertEqual({'some':'data'}, payload_data)
+        self.assertEqual({'some': 'data'}, payload_data)
 
     def test_get_data_payload_returns_default_encoded_data_when_no_content_type_header(self):
         self.sut.http_method = "POST"
@@ -259,12 +260,12 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
     def test_create_request_sends_header_data_to_get_data_payload(self):
         request_kwargs = {"headers": {"Content-Type": "application/json"}}
         with mock.patch.object(self.sut, "_get_data_payload") as get_payload:
-            self.sut.create_request("/", **request_kwargs)
+            self.sut.create_request("http://google.com/", **request_kwargs)
         get_payload.assert_called_once_with(request_kwargs["headers"])
 
     def test_create_request_sends_empty_dict_to_get_data_payload_when_no_header(self):
         with mock.patch.object(self.sut, "_get_data_payload") as get_payload:
-            self.sut.create_request("/")
+            self.sut.create_request("http://google.com/")
         get_payload.assert_called_once_with({})
 
     def test_input_files_property_will_wrap_single_file_in_list(self):
@@ -288,20 +289,41 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
 
 class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
 
+    sut_class = SignedRequestFactory
+
+    def setUp(self):
+        self.method = 'GET'
+        self.private_key = '1234'
+        self.client_id = 'foobar'
+        self.raw_data = {'some': 'data'}
+        self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.raw_data)
+
     def test_get_request_returns_url_with_data_client_id_and_signature(self):
         self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
         url = 'http://bit.ly/'
         self.sut.http_method = 'GET'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        url = [
+        url = ''.join([
             'http://bit.ly/',
             '?__client_id=foobar',
             '&username=some.user',
             '&token=813bc1ad91dfadsfsdfsd02c',
             '&__signature=xfK_-z48Wh4vsEG-NoSN3FzE-2gO82cQvvVKjuB4qHs='
-        ]
-        self.assertEqual(result, url.join(''))
+        ])
+        self.assertEqual(result, url)
+
+    def test_get_request_returns_url_with_spaces_escaped(self):
+        self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
+        url = 'http://bit.ly/policy_number/8G BAD/'
+        self.sut.http_method = 'POST'
+        self.sut.client_id = 'foobar'
+        result = self.sut.build_request_url(url, {})
+        expected_url = ''.join([
+            'http://bit.ly/policy_number/8G%20BAD/',
+            '?__client_id=foobar&__signature=QTdfsNOKDzB34VbCorxavB5slXStdImlDbw-yq7nYc8='
+        ])
+        self.assertEqual(result, expected_url)
 
     def test_post_request_returns_url_with_only_client_id_and_signature(self):
         self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}

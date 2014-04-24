@@ -1,11 +1,9 @@
 
 from setuptools import setup, find_packages
 
-from generic_request_signer import VERSION
-
 setup(
     name='generic-request-signer',
-    version=VERSION,
+    version='0.2.3',
     author='imtapps',
     url='https://github.com/imtapps/generic-request-signer',
     description="A python library for signing http requests.",

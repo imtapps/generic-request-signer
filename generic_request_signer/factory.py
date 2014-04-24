@@ -1,11 +1,13 @@
-import apysigner
+import re
 import constants
 import itertools
 import mimetools
 import mimetypes
-import request
+from urllib import urlencode, quote
 
-from urllib import urlencode
+import apysigner
+
+from . import request
 
 
 def default_encoding(raw_data, *args):
@@ -47,8 +49,12 @@ class SignedRequestFactory(object):
     def _build_signed_url(self, url, headers):
         data = {} if self.should_data_be_sent_on_querystring() else self._build_signature_dict_for_content_type(headers)
         signature = apysigner.get_signature(self.private_key, url, data)
-        signed_url = url + "&{}={}".format(constants.SIGNATURE_PARAM_NAME, signature)
+        signed_url = self._escape_url(url) + "&{}={}".format(constants.SIGNATURE_PARAM_NAME, signature)
         return signed_url
+
+    def _escape_url(self, url):
+        match = re.search(r'(^.+://)([^?]+)(\?.+$)?', url)
+        return match.group(1) + quote(match.group(2)) + (match.group(3) if match.group(3) is not None else '')
 
     def _build_signature_dict_for_content_type(self, headers):
         content_type = headers.get("Content-Type")
