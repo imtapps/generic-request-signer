@@ -1,8 +1,7 @@
-import mock
 import urllib2
 import unittest
-from datetime import date
-from decimal import Decimal
+
+import mock
 from generic_request_signer import client
 
 
@@ -45,8 +44,8 @@ class ClientTests(unittest.TestCase):
     def test_get_response_invokes_get_request_incoming_params(self):
         method = 'GET'
         endpoint = '/'
-        data = {'some':'data'}
-        kwargs = {'some':'kwarg'}
+        data = {'some': 'data'}
+        kwargs = {'some': 'kwarg'}
         with mock.patch.object(self.sut_class, '_get_request') as get_request:
             self.sut._get_response(method, endpoint, data, **kwargs)
         get_request.assert_called_once_with(method, endpoint, data, None, **kwargs)
@@ -57,7 +56,7 @@ class ClientTests(unittest.TestCase):
         self.response.assert_called_once_with(self.urlopen.return_value)
 
     def test_when_urlopen_throws_exception_the_http_error_is_used_to_instantiate_the_response(self):
-        http_error = urllib2.HTTPError('/',500,'',None,None)
+        http_error = urllib2.HTTPError('/', 500, '', None, None)
         self.urlopen.side_effect = http_error
         with mock.patch.object(self.sut_class, '_get_request'):
             self.sut._get_response('GET', '/', {}, **{})
@@ -79,7 +78,7 @@ class ClientTests(unittest.TestCase):
         factory.assert_called_once_with('GET', '1', 'YQ==', {}, {'f': ('f', 'f')})
 
     def test_get_request_invokes_create_request_on_factory(self):
-        data = {'some':'data'}
+        data = {'some': 'data'}
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             self.sut._get_request('GET', '/endpoint/', data, **{})
         factory.return_value.create_request.assert_called_once_with('/foo/endpoint/')

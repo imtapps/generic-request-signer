@@ -1,5 +1,6 @@
-from cStringIO import StringIO
 import unittest
+from cStringIO import StringIO
+
 from generic_request_signer.factory import MultipartSignedRequestFactory
 
 

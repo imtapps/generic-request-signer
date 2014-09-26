@@ -1,6 +1,7 @@
 import mock
 import unittest
 import base64
+
 from generic_request_signer import constants, check_signature
 
 
@@ -12,7 +13,7 @@ class CheckSignatureForBinaryTests(unittest.TestCase):
         url_path = "/example/post-it/"
         private_key = 'UHJpdmF0ZSBLZXk='
         signature = "AKm9ZGCZPaYRMnLxpFZ8-ulaCIr_wKYAruZVm36uv3Q="
-        expected_payload = {'binary_data':'3858f62230ac3c915f300c664312c63f'}
+        expected_payload = {'binary_data': '3858f62230ac3c915f300c664312c63f'}
         check_signature.check_signature_for_binary(signature, private_key, url_path, payload)
         check_signature_mock.assert_called_once_with(signature, private_key, url_path, expected_payload)
 

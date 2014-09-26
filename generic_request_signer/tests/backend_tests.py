@@ -1,5 +1,6 @@
 import mock
 import unittest
+
 from generic_request_signer import backend
 
 

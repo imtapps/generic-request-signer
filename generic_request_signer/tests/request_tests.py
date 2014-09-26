@@ -1,7 +1,9 @@
 import mock
 import unittest
+
 from generic_request_signer.request import Request
 from generic_request_signer.exceptions import HttpMethodNotAllowed
+
 
 class RequestTests(unittest.TestCase):
 
@@ -10,8 +12,8 @@ class RequestTests(unittest.TestCase):
     def test_urllib2_super_invoked_with_params(self):
         url = '/'
         data = {}
-        args = {'some':'args'}
-        kwargs = {'more':'kwargs'}
+        args = {'some': 'args'}
+        kwargs = {'more': 'kwargs'}
         with mock.patch('urllib2.Request.__init__') as init:
             self.sut_class('GET', url, data, *args, **kwargs)
         init.assert_called_once_with(url, data, *args, **kwargs)

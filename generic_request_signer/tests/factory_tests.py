@@ -1,9 +1,9 @@
 import datetime
 import mock
 import unittest
+from collections import OrderedDict
 from decimal import Decimal
 from urllib import urlencode
-from collections import OrderedDict
 
 from generic_request_signer import constants
 from generic_request_signer.factory import SignedRequestFactory, json_encoding, default_encoding

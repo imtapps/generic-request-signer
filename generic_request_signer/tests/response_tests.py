@@ -1,6 +1,8 @@
 import mock
 import unittest
+
 from generic_request_signer.response import Response
+
 
 class ResponseTests(unittest.TestCase):
 

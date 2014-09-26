@@ -1,4 +1,5 @@
 import unittest
+
 from generic_request_signer.exceptions import WebException, HttpMethodNotAllowed
 
 
