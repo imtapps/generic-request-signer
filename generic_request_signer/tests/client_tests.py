@@ -39,7 +39,7 @@ class ClientTests(unittest.TestCase):
     def test_get_response_invokes_urlopen_with_request_return_value(self):
         with mock.patch.object(self.sut_class, '_get_request') as get_request:
             self.sut._get_response('GET', '/', {}, **{})
-        self.urlopen.assert_called_once_with(get_request.return_value)
+        self.urlopen.assert_called_once_with(get_request.return_value, timeout=60)
 
     def test_get_response_invokes_get_request_incoming_params(self):
         method = 'GET'
@@ -66,6 +66,18 @@ class ClientTests(unittest.TestCase):
         with mock.patch.object(self.sut_class, '_get_request'):
             result = self.sut._get_response('GET', '/', {}, **{})
         self.assertEqual(result, self.response.return_value)
+
+    @mock.patch('urllib2.urlopen')
+    @mock.patch.object(client.Client, '_get_request')
+    def test_get_response_passes_default_timeout_to_url_open(self, get_request, urlopen):
+        self.sut._get_response('GET', '/', {}, **{})
+        urlopen.assert_called_once_with(get_request.return_value, timeout=60)
+
+    @mock.patch('urllib2.urlopen')
+    @mock.patch.object(client.Client, '_get_request')
+    def test_get_response_passes_passed_timeout_to_url_open(self, get_request, urlopen):
+        self.sut._get_response('GET', '/', {}, **{'timeout': 20})
+        urlopen.assert_called_once_with(get_request.return_value, timeout=20)
 
     def test_get_request_instantiates_factory_with_params(self):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
