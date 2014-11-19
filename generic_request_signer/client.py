@@ -24,7 +24,8 @@ class Client(object):
         return factory.SignedRequestFactory
 
     def _get_response(self, http_method, endpoint, data=None, files=None, **request_kwargs):
-        if request_kwargs.get("headers", {}).get("Content-Type") == "application/json":
+        headers = request_kwargs.get("headers", {})
+        if not isinstance(data, basestring) and headers.get("Content-Type") == "application/json":
             data = json.dumps(data, default=json_encoder)
         try:
             http_response = urllib2.urlopen(self._get_request(http_method, endpoint, data, files, **request_kwargs))
