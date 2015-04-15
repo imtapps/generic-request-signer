@@ -39,7 +39,7 @@ class ClientTests(unittest.TestCase):
     def test_get_response_invokes_urlopen_with_request_return_value(self):
         with mock.patch.object(self.sut_class, '_get_request') as get_request:
             self.sut._get_response('GET', '/', {}, **{})
-        self.urlopen.assert_called_once_with(get_request.return_value)
+        self.urlopen.assert_called_once_with(get_request.return_value, timeout=15)
 
     def test_get_response_encodes_json_data_when_content_type_is_application_json(self):
         request_args = {"headers": {"Content-Type": "application/json"}}
@@ -100,6 +100,11 @@ class ClientTests(unittest.TestCase):
         with mock.patch('generic_request_signer.factory.SignedRequestFactory') as factory:
             result = self.sut._get_request('GET', '/', {}, **{})
         self.assertEqual(result, factory.return_value.create_request.return_value)
+
+    def test_timeout_in_get_response_can_be_overridden(self):
+        with mock.patch.object(self.sut_class, '_get_request') as get_request:
+            self.sut._get_response('GET', '/', {}, timeout=30, **{})
+        self.urlopen.assert_called_once_with(get_request.return_value, timeout=30)
 
 
 class FakeApiCredentials(object):
