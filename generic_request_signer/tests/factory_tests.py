@@ -1,15 +1,21 @@
+import six
 import datetime
-import mock
-import unittest
 from collections import OrderedDict
 from decimal import Decimal
-from urllib import urlencode
+
+if six.PY3:
+    from unittest import mock, TestCase
+    from urllib.parse import urlencode
+else:
+    import mock
+    from unittest import TestCase
+    from urllib import urlencode
 
 from generic_request_signer import constants
 from generic_request_signer.factory import SignedRequestFactory, json_encoding, default_encoding
 
 
-class SignedRequestFactoryTests(unittest.TestCase):
+class SignedRequestFactoryTests(TestCase):
 
     sut_class = SignedRequestFactory
 
@@ -40,12 +46,12 @@ class SignedRequestFactoryTests(unittest.TestCase):
 
     def test_default_encoding_encodes_url_data(self):
         result = default_encoding({'foo': 'bar', 'baz': 'broken'})
-        self.assertEqual(result, 'foo=bar&baz=broken')
+        self.assertEqual(result, 'baz=broken&foo=bar')
 
     def test_build_signature_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
         result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/json"})
-        self.assertItemsEqual(result, {u"date": u"1900-01-02",
+        six.assertCountEqual(self, result, {u"date": u"1900-01-02",
                                        u"foo": u"100.1200000000000045474735088646411895751953125",
                                        u"empty": None})
 
@@ -154,7 +160,12 @@ class SignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual(result, request.return_value)
 
 
-class LegacySignedRequestFactoryTests(unittest.TestCase):
+class LegacySignedRequestFactoryTests(TestCase):
+
+    if six.PY3:
+        urllib_mock = 'urllib.request.Request.__init__'
+    else:
+        urllib_mock = 'urllib2.Request.__init__'
 
     def setUp(self):
         self.client_id = 'client_id'
@@ -186,44 +197,44 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, 'N1WOdyaBUVlPjKVyL3ionapOLAasFdvagfotfCdCW-Y=')
         self.assertEqual(url + querystring, request.get_full_url())
 
-    @mock.patch('urllib2.Request.__init__')
-    def test_urlencodes_data_as_part_of_url_when_method_is_get(self, urllib2_request):
+    @mock.patch(urllib_mock)
+    def test_urlencodes_data_as_part_of_url_when_method_is_get(self, urllib_request):
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.create_request('http://www.myurl.com')
-        self.assertEqual(None, urllib2_request.call_args[0][1])
-        url = "http://www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
+        self.assertEqual(None, urllib_request.call_args[0][1])
+        url = "http://www.myurl.com?{}={}&goes=he+re&some=da+ta&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'Npe9c-jKl2KhwGqvI8-DYxLQMqEm41swdGkQfQ9--lM='
+            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
-        self.assertEqual(url, urllib2_request.call_args[0][0])
+        self.assertEqual(url, urllib_request.call_args[0][0])
 
-    @mock.patch('urllib2.Request.__init__')
+    @mock.patch(urllib_mock)
     def test_urlencodes_data_as_part_of_url_when_method_is_delete(self, urllib2_request):
         self.sut.http_method = 'DELETE'
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.create_request('http://www.myurl.com')
         self.assertEqual(None, urllib2_request.call_args[0][1])
-        url = "http://www.myurl.com?{}={}&some=da+ta&goes=he+re&{}={}".format(
+        url = "http://www.myurl.com?{}={}&goes=he+re&some=da+ta&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'Npe9c-jKl2KhwGqvI8-DYxLQMqEm41swdGkQfQ9--lM='
+            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
-    @mock.patch('urllib2.Request.__init__')
+    @mock.patch(urllib_mock)
     def test_passes_data_to_urllib_request_when_method_is_not_get(self, urllib2_request):
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.http_method = 'POST'
         self.sut.create_request('https://www.myurl.com')
-        self.assertEqual(urlencode(self.sut.raw_data), urllib2_request.call_args[0][1])
+        self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))), urllib2_request.call_args[0][1])
         url = "https://www.myurl.com?{}={}&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'cbseuxu6jVikia-u_Qxf5a4v3DKvyrkxjFSj4pnIHVw='
+            'fSn0A4npvcO2BIj9rmVUaii-0aLgWqnXYpd7oUGLscE='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
@@ -287,7 +298,7 @@ class LegacySignedRequestFactoryTests(unittest.TestCase):
         self.assertIn('&items=a&items=b&items=c&items=d', result)
 
 
-class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
+class SignedRequestFactoryBuildSignedUrlTests(TestCase):
 
     sut_class = SignedRequestFactory
 
@@ -307,9 +318,9 @@ class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
         url = ''.join([
             'http://bit.ly/',
             '?__client_id=foobar',
-            '&username=some.user',
             '&token=813bc1ad91dfadsfsdfsd02c',
-            '&__signature=xfK_-z48Wh4vsEG-NoSN3FzE-2gO82cQvvVKjuB4qHs='
+            '&username=some.user',
+            '&__signature=mNDkrb5g96Yz1Dpn9gyuvOKLIKPDijMMs1dj3RGk-Dc='
         ])
         self.assertEqual(result, url)
 
@@ -321,7 +332,7 @@ class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
         result = self.sut.build_request_url(url, {})
         expected_url = ''.join([
             'http://bit.ly/policy_number/8G%20BAD/',
-            '?__client_id=foobar&__signature=QTdfsNOKDzB34VbCorxavB5slXStdImlDbw-yq7nYc8='
+            '?__client_id=foobar&__signature=unJ7LSl7aEKwmvKO66RQpGyz--XYVyOT4mdHYSuMwBY='
         ])
         self.assertEqual(result, expected_url)
 
@@ -331,7 +342,7 @@ class SignedRequestFactoryBuildSignedUrlTests(unittest.TestCase):
         self.sut.http_method = 'POST'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        expected_url = 'http://bit.ly/?__client_id=foobar&__signature=mZ9tW9jlsmJ78fYvjO06LBLiY0COSAeYMHgqPE0Tb7s='
+        expected_url = 'http://bit.ly/?__client_id=foobar&__signature=ADFz4tNcfGVeN2WtdHOJO0vDiQ45zF9zk6OBpwHrwqs='
         self.assertEqual(result, expected_url)
 
     @mock.patch('apysigner.get_signature')

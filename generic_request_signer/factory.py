@@ -1,17 +1,26 @@
+import os
 import re
-import constants
+import socket
+import time
 import itertools
-import mimetools
 import mimetypes
-from urllib import urlencode, quote
+import six
+from random import randint
+from collections import OrderedDict
+
+if six.PY3:
+    from urllib.parse import urlencode, quote
+else:
+    from urllib import urlencode, quote
 
 import apysigner
 
 from . import request
+from generic_request_signer import constants
 
 
 def default_encoding(raw_data, *args):
-    return urlencode(raw_data, doseq=True)
+    return urlencode(OrderedDict(sorted(raw_data.items())), doseq=True)
 
 
 def json_encoding(raw_data, *args):
@@ -43,7 +52,7 @@ class SignedRequestFactory(object):
     def build_request_url(self, url, headers):
         url = self._build_client_url(url)
         if self.should_data_be_sent_on_querystring():
-            url += "&{0}".format(urlencode(self.raw_data, doseq=True))
+            url += "&{0}".format(urlencode(OrderedDict(sorted(self.raw_data.items())), doseq=True))
         return self._build_signed_url(url, headers)
 
     def _build_signed_url(self, url, headers):
@@ -75,6 +84,7 @@ class SignedRequestFactory(object):
     def method_uses_querystring(self):
         return self.http_method.lower() in ('get', 'delete')
 
+
     def _build_client_url(self, url):
         url += "?%s=%s" % (constants.CLIENT_ID_PARAM_NAME, self.client_id)
         return url
@@ -86,7 +96,8 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
 
     def __init__(self, *args, **kwargs):
         super(MultipartSignedRequestFactory, self).__init__(*args, **kwargs)
-        self.boundary = mimetools.choose_boundary()
+        self.boundary_prefix = None
+        self.boundary = self.choose_boundary()
         self.part_boundary = "--" + self.boundary
 
     def create_request(self, url, *args, **request_kwargs):
@@ -97,7 +108,7 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
 
     def _build_request(self, body, url):
         new_request = request.Request(self.http_method, url, None)
-        new_request.add_data(body)
+        new_request.data = body
         new_request.add_header('Content-type', 'multipart/form-data; boundary=%s' % self.boundary)
         return new_request
 
@@ -127,3 +138,20 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
         flattened.append(self.part_boundary + '--')
         flattened.append('')
         return '\r\n'.join(flattened)
+
+    def choose_boundary(self):
+        if not self.boundary_prefix:
+            try:
+                hostid = socket.gethostbyname(socket.gethostname())
+            except socket.gaierror:
+                hostid = '127.0.0.1'
+            try:
+                uid = repr(os.getuid())
+            except AttributeError:
+                uid = '1'
+            try:
+                pid = repr(os.getpid())
+            except AttributeError:
+                pid = '1'
+            self.boundary_prefix = hostid + '.' + uid + '.' + pid
+        return '{}.{}.{}'.format(self.boundary_prefix, time.time(), randint(1000, 10000))

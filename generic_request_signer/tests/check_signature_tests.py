@@ -1,11 +1,16 @@
-import mock
-import unittest
+import six
 import base64
+
+if six.PY3:
+    from unittest import mock, TestCase
+else:
+    import mock
+    from unittest import TestCase
 
 from generic_request_signer import constants, check_signature
 
 
-class CheckSignatureForBinaryTests(unittest.TestCase):
+class CheckSignatureForBinaryTests(TestCase):
 
     @mock.patch('generic_request_signer.check_signature.check_signature')
     def test_check_signature_for_binary_invokes_check_signature_with_hash_of_binary(self, check_signature_mock):
@@ -18,7 +23,7 @@ class CheckSignatureForBinaryTests(unittest.TestCase):
         check_signature_mock.assert_called_once_with(signature, private_key, url_path, expected_payload)
 
 
-class CheckSignatureTests(unittest.TestCase):
+class CheckSignatureTests(TestCase):
 
     def setUp(self):
         self.TEST_PRIVATE_KEY = 'UHJpdmF0ZSBLZXk='
@@ -28,10 +33,10 @@ class CheckSignatureTests(unittest.TestCase):
 
         # valid signatures for urls above and data
         self.signature_one = "T-lT3uT2wpUobJvDkXpxtsEAl7KmrEg6k3So_Varya8="
-        self.signature_two = "AKm9ZGCZPaYRMnLxpFZ8-ulaCIr_wKYAruZVm36uv3Q="
+        self.signature_two = "vjMbHBtKyn75TCKFG_OjZIZTcPZ0EZylxD5NMQH0jGs="
 
     def test_returns_true_when_private_key_built_from_base64_url_encoded_string(self):
-        base64_private_key = base64.urlsafe_b64encode('Private Key')
+        base64_private_key = base64.urlsafe_b64encode(b'Private Key')
         signature_valid = check_signature.check_signature(self.signature_one, base64_private_key, self.url_one, None)
         self.assertEqual(True, signature_valid)
 
@@ -69,7 +74,7 @@ class CheckSignatureTests(unittest.TestCase):
         self.assertEqual(True, signature_valid)
 
 
-class StripSignatureFromUrlTests(unittest.TestCase):
+class StripSignatureFromUrlTests(TestCase):
 
     def test_strip_signature_from_query_string_after_amp(self):
         url_path = '/api/CheckAuthentication/?__client_id=config&username=None&token=None&__signature=eWDBUhizESZkHtnyE807XbwdvivZKAIfwRltzcuOqgY='
@@ -85,7 +90,7 @@ class StripSignatureFromUrlTests(unittest.TestCase):
         self.assertEqual(result, '/api/CheckAuthentication/')
 
 
-class ConstantTimeCompareTests(unittest.TestCase):
+class ConstantTimeCompareTests(TestCase):
 
     def test_constant_time_compare(self):
     # It's hard to test for constant time, just test the result.

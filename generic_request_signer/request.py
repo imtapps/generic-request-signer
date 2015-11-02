@@ -1,8 +1,14 @@
-import urllib2
-from exceptions import HttpMethodNotAllowed
+import six
+
+if six.PY3:
+    from urllib.request import Request
+else:
+    from urllib2 import Request
+
+from generic_request_signer.exceptions import HttpMethodNotAllowed
 
 
-class Request(urllib2.Request, object):
+class Request(Request, object):
 
     http_method_names = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace']
 
