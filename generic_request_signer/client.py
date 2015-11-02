@@ -1,9 +1,14 @@
+import six
 from datetime import date
-import urllib2
-import response
-import factory
 import json
 import decimal
+
+if six.PY3:
+    import urllib.request as urllib
+else:
+    import urllib2 as urllib
+
+from generic_request_signer import response, factory
 
 
 def json_encoder(obj):
@@ -24,13 +29,15 @@ class Client(object):
         return factory.SignedRequestFactory
 
     def _get_response(self, http_method, endpoint, data=None, files=None, timeout=15, **request_kwargs):
+        print('HERE???')
         headers = request_kwargs.get("headers", {})
-        if not isinstance(data, basestring) and headers.get("Content-Type") == "application/json":
+        if not isinstance(data, str) and headers.get("Content-Type") == "application/json":
             data = json.dumps(data, default=json_encoder)
         try:
-            http_response = urllib2.urlopen(self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
-        except urllib2.HTTPError as e:
+            http_response = urllib.urlopen(self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
+        except urllib.HTTPError as e:
             http_response = e
+        print('This')
         return response.Response(http_response)
 
     def _get_request(self, http_method, endpoint, data=None, files=None, **request_kwargs):

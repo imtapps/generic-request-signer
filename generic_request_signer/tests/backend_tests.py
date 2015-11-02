@@ -1,10 +1,14 @@
-import mock
-import unittest
+import six
+if six.PY3:
+    from unittest import mock, TestCase
+else:
+    import mock
+    from unittest import TestCase
 
 from generic_request_signer import backend
 
 
-class BasicSettingsApiCredentialsBackendTests(unittest.TestCase):
+class BasicSettingsApiCredentialsBackendTests(TestCase):
 
     sut_class = backend.BasicSettingsApiCredentialsBackend
 

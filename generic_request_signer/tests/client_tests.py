@@ -1,18 +1,25 @@
-import urllib2
-import unittest
+import six
 
-import mock
+if six.PY3:
+    from urllib.request import HTTPError
+    from unittest import mock, TestCase
+else:
+    import mock
+    from urllib2 import HTTPError
+    from unittest import TestCase
+
 from generic_request_signer import client
 
 
-class ClientTests(unittest.TestCase):
+class ClientTests(TestCase):
 
     sut_class = client.Client
 
     def setUp(self):
+        urlopen_mock = 'urllib.request.urlopen' if six.PY3 else 'urllib2.urlopen'
         self.api_credentials = FakeApiCredentials('/foo', '1', 'YQ==')
         self.sut = self.sut_class(self.api_credentials)
-        self.urlopen_patch = mock.patch('urllib2.urlopen')
+        self.urlopen_patch = mock.patch(urlopen_mock)
         self.urlopen = self.urlopen_patch.start()
         self.response_patch = mock.patch('generic_request_signer.response.Response')
         self.response = self.response_patch.start()
@@ -69,7 +76,7 @@ class ClientTests(unittest.TestCase):
         self.response.assert_called_once_with(self.urlopen.return_value)
 
     def test_when_urlopen_throws_exception_the_http_error_is_used_to_instantiate_the_response(self):
-        http_error = urllib2.HTTPError('/', 500, '', None, None)
+        http_error = HTTPError('/', 500, '', None, None)
         self.urlopen.side_effect = http_error
         with mock.patch.object(self.sut_class, '_get_request'):
             self.sut._get_response('GET', '/', {}, **{})

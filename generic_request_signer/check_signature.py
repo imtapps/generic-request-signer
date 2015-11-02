@@ -1,11 +1,12 @@
 import hashlib
 import apysigner
-import constants
 import re
+
+from generic_request_signer import constants
 
 
 def generate_hash_for_binary(binary_data):
-    return {'binary_data': hashlib.md5(binary_data).hexdigest()}
+    return {'binary_data': hashlib.md5(str.encode(binary_data)).hexdigest()}
 
 def check_signature_for_binary(signature, private_key, full_path, binary):
     binary_hash = generate_hash_for_binary(binary)
@@ -28,8 +29,13 @@ def check_signature(signature, private_key, full_path, payload):
     :returns:
         Boolean of whether signature matched or not.
     """
+    if isinstance(private_key, bytes):
+        private_key = private_key.decode("ascii")
+
     url_to_check = _strip_signature_from_url(signature, full_path)
     computed_signature = apysigner.get_signature(private_key, url_to_check, payload)
+    print(computed_signature)
+    print(signature)
     return constant_time_compare(signature, computed_signature)
 
 
@@ -48,6 +54,12 @@ def constant_time_compare(val1, val2):
     """
     if len(val1) != len(val2):
         return False
+
+    if isinstance(val1, bytes):
+        val1 = val1.decode("ascii")
+    if isinstance(val2, bytes):
+        val2 = val2.decode("ascii")
+
     result = 0
     for x, y in zip(val1, val2):
         result |= ord(x) ^ ord(y)
