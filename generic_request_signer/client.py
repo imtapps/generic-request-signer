@@ -38,6 +38,7 @@ class Client(object):
         except urllib.HTTPError as e:
             http_response = e
         print('This')
+        print(http_response)
         return response.Response(http_response)
 
     def _get_request(self, http_method, endpoint, data=None, files=None, **request_kwargs):
