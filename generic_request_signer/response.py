@@ -1,3 +1,4 @@
+import six
 import json
 
 
@@ -21,7 +22,10 @@ class Response(object):
         response_content = self.read()
         if response_content == '':
             return {}
-        return json.loads(response_content)
+        if six.PY3:
+            return json.loads(bytes.decode(response_content, 'utf-8'))
+        else:
+            return json.loads(response_content)
 
     @property
     def is_successful(self):

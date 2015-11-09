@@ -1,18 +1,11 @@
 #!/bin/bash
 
-# verify user provided a name for the virtualenv
-if [ -z "$1" ]; then
-    echo "usage: $0 virtual_env_name"
-    exit
-fi
-
-VIRTUALENV_NAME=$1
-
-virtualenv $VIRTUALENV_NAME
-. $VIRTUALENV_NAME/bin/activate
+virtualenv testing
+. testing/bin/activate
 
 find . -name "*.pyc" -delete
 
+pip install -e ~/Projects/apysigner
 pip install -r requirements/test.txt
 
 nosetests --with-xunit --with-xcover --cover-package=generic_request_signer
@@ -26,7 +19,7 @@ PYFLAKES_EXIT=$?
 
 # cleanup virtualenv
 deactivate
-rm -rf $VIRTUALENV_NAME
+rm -rf testing/
 
 let JENKINS_EXIT="$TEST_EXIT + $PEP8_EXIT + $PYFLAKES_EXIT"
 if [ $JENKINS_EXIT -gt 2 ]; then

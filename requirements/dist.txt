@@ -1,2 +1,1 @@
-apysigner>=3.0
 six
