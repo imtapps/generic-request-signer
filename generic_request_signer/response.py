@@ -22,10 +22,9 @@ class Response(object):
         response_content = self.read()
         if response_content == '':
             return {}
-        if six.PY3:
-            return json.loads(bytes.decode(response_content, 'utf-8'))
-        else:
-            return json.loads(response_content)
+        if six.PY3 and isinstance(response_content, bytes):
+            response_content = bytes.decode(response_content, 'utf-8')
+        return json.loads(response_content)
 
     @property
     def is_successful(self):

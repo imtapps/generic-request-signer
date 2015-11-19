@@ -185,7 +185,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         request = self.sut.create_request(url)
 
         querystring = "?{}={}".format(constants.CLIENT_ID_PARAM_NAME, self.client_id)
-        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, 'N1WOdyaBUVlPjKVyL3ionapOLAasFdvagfotfCdCW-Y=')
+        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, '4dD72V7H32_6zRdkyjenlrhP17cGl_oK2jsxGYe7H30=')
         self.assertEqual(url + querystring, request.get_full_url())
 
     def test_adds_signature_to_url(self):
@@ -194,7 +194,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         request = self.sut.create_request(url)
 
         querystring = "?{}={}".format(constants.CLIENT_ID_PARAM_NAME, self.client_id)
-        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, 'N1WOdyaBUVlPjKVyL3ionapOLAasFdvagfotfCdCW-Y=')
+        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, '4dD72V7H32_6zRdkyjenlrhP17cGl_oK2jsxGYe7H30=')
         self.assertEqual(url + querystring, request.get_full_url())
 
     @mock.patch(urllib_mock)
@@ -206,7 +206,7 @@ class LegacySignedRequestFactoryTests(TestCase):
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
+            'qJ96-g4nh56Y-29NWyjhVkAU_gje_1RJSmZqdNIdCSk='
         )
         self.assertEqual(url, urllib_request.call_args[0][0])
 
@@ -220,7 +220,7 @@ class LegacySignedRequestFactoryTests(TestCase):
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
+            'qJ96-g4nh56Y-29NWyjhVkAU_gje_1RJSmZqdNIdCSk='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
@@ -234,7 +234,7 @@ class LegacySignedRequestFactoryTests(TestCase):
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'fSn0A4npvcO2BIj9rmVUaii-0aLgWqnXYpd7oUGLscE='
+            'qlOmQQGhbHtfu8i7UMaS_233z1550YN0JDkS1FeOzRA='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
@@ -306,7 +306,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.method = 'GET'
         self.private_key = '1234'
         self.client_id = 'foobar'
-        self.raw_data = {'some': 'data'}
+        self.raw_data = {'some': ['data']}
         self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.raw_data)
 
     def test_get_request_returns_url_with_data_client_id_and_signature(self):
@@ -320,9 +320,9 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
             '?__client_id=foobar',
             '&token=813bc1ad91dfadsfsdfsd02c',
             '&username=some.user',
-            '&__signature=mNDkrb5g96Yz1Dpn9gyuvOKLIKPDijMMs1dj3RGk-Dc='
+            '&__signature=VfeY6z-Z9mZ4y0H-OEx3H-tIc5gcVvDoQq_v338dcw0='
         ])
-        self.assertEqual(result, url)
+        self.assertEqual(url, result)
 
     def test_get_request_returns_url_with_spaces_escaped(self):
         self.sut.raw_data = {'username': u'some.user', 'token': u'813bc1ad91dfadsfsdfsd02c'}
@@ -332,7 +332,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         result = self.sut.build_request_url(url, {})
         expected_url = ''.join([
             'http://bit.ly/policy_number/8G%20BAD/',
-            '?__client_id=foobar&__signature=unJ7LSl7aEKwmvKO66RQpGyz--XYVyOT4mdHYSuMwBY='
+            '?__client_id=foobar&__signature=-9fbyXUAy8WnbABPZwInisRvcpA_EJaj2nUa5TyapWU='
         ])
         self.assertEqual(result, expected_url)
 
@@ -342,7 +342,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.sut.http_method = 'POST'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        expected_url = 'http://bit.ly/?__client_id=foobar&__signature=ADFz4tNcfGVeN2WtdHOJO0vDiQ45zF9zk6OBpwHrwqs='
+        expected_url = 'http://bit.ly/?__client_id=foobar&__signature=by2VWWxqaqql9pkpcbbGrIbSGyiD4S8JhkGFesxCF2Q='
         self.assertEqual(result, expected_url)
 
     @mock.patch('apysigner.get_signature')
@@ -369,7 +369,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.sut.raw_data = None
         self.sut.http_method = 'GET'
         self.sut._build_signed_url(url, {})
-        get_signature.assert_called_once_with(self.private_key, url, None)
+        get_signature.assert_called_once_with(self.private_key, url, {})
 
     @mock.patch('apysigner.get_signature')
     def test_get_signature_invoked_with_raw_data_when_post_request(self, get_signature):
@@ -384,7 +384,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.sut.http_method = 'POST'
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2)}
         self.sut._build_signed_url(url, {"Content-Type": "application/x-www-form-urlencoded"})
-        get_signature.assert_called_once_with(self.private_key, url, {'date': datetime.date(1900, 1, 2)})
+        get_signature.assert_called_once_with(self.private_key, url, {'date': [datetime.date(1900, 1, 2)]})
 
     @mock.patch('apysigner.get_signature')
     def test_get_signature_invoked_with_json_turned_dict_when_posted_as_application_json(self, get_signature):

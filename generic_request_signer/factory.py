@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import socket
@@ -17,6 +18,7 @@ import apysigner
 
 from . import request
 from generic_request_signer import constants
+from generic_request_signer.multi_value_dict import MVD
 
 
 def default_encoding(raw_data, *args):
@@ -70,7 +72,11 @@ class SignedRequestFactory(object):
         if content_type and content_type == "application/json":
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
             return encoding_func(self.raw_data)
-        return self.raw_data
+        if self.raw_data:
+            multi_dict = MVD()
+            multi_dict.update(self.raw_data)
+            return dict(multi_dict)
+        return {}
 
     def _get_data_payload(self, request_headers):
         if self.raw_data and not self.method_uses_querystring():
@@ -83,7 +89,6 @@ class SignedRequestFactory(object):
 
     def method_uses_querystring(self):
         return self.http_method.lower() in ('get', 'delete')
-
 
     def _build_client_url(self, url):
         url += "?%s=%s" % (constants.CLIENT_ID_PARAM_NAME, self.client_id)
