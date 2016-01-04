@@ -54,7 +54,7 @@ class SignedRequestFactory(object):
     def build_request_url(self, url, headers):
         url = self._build_client_url(url)
         if self.should_data_be_sent_on_querystring():
-            url += "&{0}".format(urlencode(OrderedDict(sorted(self.raw_data.items())), doseq=True))
+            url += "&{0}".format(default_encoding(self.raw_data))
         return self._build_signed_url(url, headers)
 
     def _build_signed_url(self, url, headers):
