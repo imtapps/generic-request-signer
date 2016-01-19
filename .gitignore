@@ -16,3 +16,4 @@ doc/build/*
 
 .ctags
 .ropeproject/*
+.tox/*

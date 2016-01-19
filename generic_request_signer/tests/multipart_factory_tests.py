@@ -1,5 +1,10 @@
+import six
 import unittest
-from cStringIO import StringIO
+
+if six.PY3:
+    from io import StringIO
+else:
+    from cStringIO import StringIO
 
 from generic_request_signer.factory import MultipartSignedRequestFactory
 
@@ -7,11 +12,11 @@ from generic_request_signer.factory import MultipartSignedRequestFactory
 class MultipartSignedRequestFactoryTests(unittest.TestCase):
     """
     usage example:
-    >>> import urllib2
-    >>> from generic_request_signer.factory import MultipartSignedRequestFactory
-    >>>
-    >>> factory = MultipartSignedRequestFactory('POST', 'client_id', 'private_key', {'policy': '9999'})
-    >>> urllib2.urlopen(factory.create_multipart_request('url', {'file': ('img.jpeg', file('img.jpeg'))}))
+     >> import urllib2
+     >> from generic_request_signer.factory import MultipartSignedRequestFactory
+     >>
+     >> factory = MultipartSignedRequestFactory('POST', 'client_id', 'private_key', {'policy': '9999'})
+     >> urllib2.urlopen(factory.create_multipart_request('url', {'file': ('img.jpeg', file('img.jpeg'))}))
     """
 
     def test_get_content_type_returns_correct_content_type(self):
@@ -32,7 +37,7 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
         second = {'file': ('file2.jpeg', StringIO("f2"))}
         sut = MultipartSignedRequestFactory(None, None, None, None, files=[first, second])
         result = sut.get_multipart_files()
-        self.assertItemsEqual([[
+        six.assertCountEqual(self, [[
             sut.part_boundary,
             'Content-Disposition: file; name="file"; filename="file1.jpeg"',
             'Content-Type: image/jpeg', '', 'f1'
@@ -46,7 +51,7 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
         files = {'file': ('file1.jpeg', StringIO("f1"))}
         sut = MultipartSignedRequestFactory(None, None, None, None, files=files)
         result = sut.get_multipart_files()
-        self.assertItemsEqual([[
+        six.assertCountEqual(self, [[
             sut.part_boundary,
             'Content-Disposition: file; name="file"; filename="file1.jpeg"',
             'Content-Type: image/jpeg', '', 'f1'
@@ -55,7 +60,7 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
     def test_get_multipart_fields_returns_list_of_fields_when_value_is_not_string(self):
         sut = MultipartSignedRequestFactory(None, None, None, None)
         result = sut.get_multipart_fields({'field1': 'v1', 'field2': 1234})
-        self.assertItemsEqual([[
+        six.assertCountEqual(self, [[
             sut.part_boundary,
             'Content-Disposition: form-data; name="field1"',
             '', 'v1'
@@ -68,7 +73,7 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
     def test_get_multipart_fields_returns_list_of_fields(self):
         sut = MultipartSignedRequestFactory(None, None, None, None)
         result = sut.get_multipart_fields({'field1': 'v1', 'field2': 'v2'})
-        self.assertItemsEqual([[
+        six.assertCountEqual(self, [[
             sut.part_boundary,
             'Content-Disposition: form-data; name="field1"',
             '', 'v1'
@@ -98,4 +103,4 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
     def test_create_multipart_request_returns_request_with_signature(self):
         sut = MultipartSignedRequestFactory("GET", 'client', 'YQ==', data={'data': 'one'}, files={'f1': ('f.jpg', StringIO("f1"))})
         result = sut.create_request('http://localhost/asdf')
-        self.assertEqual('http://localhost/asdf?__client_id=client&data=one&__signature=NSTBEfeYJZKsqn-sm8Rtt4PqbPzMbedISAujopMXjfg=', result.get_full_url())
+        self.assertEqual('http://localhost/asdf?__client_id=client&data=one&__signature=_bwdosZnhD4KoUnERn3--4uBynq-dU_HN5LDKX19X9s=', result.get_full_url())

@@ -1,10 +1,15 @@
-import mock
-import unittest
+import six
+
+if six.PY3:
+    from unittest import mock, TestCase
+else:
+    from unittest import TestCase
+    import mock
 
 from generic_request_signer.response import Response
 
 
-class ResponseTests(unittest.TestCase):
+class ResponseTests(TestCase):
 
     sut_class = Response
 
