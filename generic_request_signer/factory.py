@@ -21,8 +21,11 @@ from generic_request_signer import constants
 from generic_request_signer.convert_values_to_list import ConvertValuesToList
 
 
-def default_encoding(raw_data, *args):
-    return urlencode(OrderedDict(sorted(raw_data.items())), doseq=True)
+def default_encoding(raw_data, querystring=False):
+    encoded_url = urlencode(OrderedDict(sorted(raw_data.items())), doseq=True)
+    if six.PY2 or querystring:
+        return encoded_url
+    return encoded_url.encode()
 
 
 def json_encoding(raw_data, *args):
@@ -54,7 +57,7 @@ class SignedRequestFactory(object):
     def build_request_url(self, url, headers):
         url = self._build_client_url(url)
         if self.should_data_be_sent_on_querystring():
-            url += "&{0}".format(default_encoding(self.raw_data))
+            url += "&{0}".format(default_encoding(self.raw_data, querystring=True))
         return self._build_signed_url(url, headers)
 
     def _build_signed_url(self, url, headers):
