@@ -29,16 +29,14 @@ class Client(object):
         return factory.SignedRequestFactory
 
     def _get_response(self, http_method, endpoint, data=None, files=None, timeout=15, **request_kwargs):
-        print('HERE???')
         headers = request_kwargs.get("headers", {})
         if not isinstance(data, str) and headers.get("Content-Type") == "application/json":
             data = json.dumps(data, default=json_encoder)
         try:
-            http_response = urllib.urlopen(self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
+            http_response = urllib.urlopen(
+                self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
         except urllib.HTTPError as e:
             http_response = e
-        print('This')
-        print(http_response)
         return response.Response(http_response)
 
     def _get_request(self, http_method, endpoint, data=None, files=None, **request_kwargs):
