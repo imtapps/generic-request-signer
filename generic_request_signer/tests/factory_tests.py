@@ -44,9 +44,12 @@ class SignedRequestFactoryTests(TestCase):
         result = json_encoding("['foo', {'bar': ('baz', null, 1.0, 2)}]")
         self.assertEqual(result, "['foo', {'bar': ('baz', null, 1.0, 2)}]")
 
-    def test_default_encoding_encodes_url_data(self):
+    def test_default_encoding_encodes_url_data_for_py2_and_py3(self):
         result = default_encoding({'foo': 'bar', 'baz': 'broken'})
-        self.assertEqual(result, 'baz=broken&foo=bar')
+        if six.PY2:
+            self.assertEqual(result, 'baz=broken&foo=bar')
+        else:
+            self.assertEqual(result, b'baz=broken&foo=bar')
 
     def test_build_signature_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
@@ -113,17 +116,26 @@ class SignedRequestFactoryTests(TestCase):
             result = self.sut._get_data_payload(headers)
         self.assertEqual(result, None)
 
-    def test_encodes_dict_of_data(self):
+    def test_encodes_dict_of_data_correctly_for_py2_and_py3(self):
         result = default_encoding(OrderedDict((('a', 1), ('b', 2), ('c', 'asdf'))))
-        self.assertEqual('a=1&b=2&c=asdf', result)
+        if six.PY2:
+            self.assertEqual(result, 'a=1&b=2&c=asdf')
+        else:
+            self.assertEqual(result, b'a=1&b=2&c=asdf')
 
-    def test_encodes_dict_with_nested_list(self):
+    def test_encodes_dict_with_nested_list_correctly_for_py2_and_py3(self):
         result = default_encoding(OrderedDict((('a', 1), ('b', [2, 4]), ('c', 'asdf'))))
-        self.assertEqual('a=1&b=2&b=4&c=asdf', result)
+        if six.PY2:
+            self.assertEqual(result, 'a=1&b=2&b=4&c=asdf')
+        else:
+            self.assertEqual(result, b'a=1&b=2&b=4&c=asdf')
 
-    def test_encodes_dict_with_nested_empty_list(self):
+    def test_encodes_dict_with_nested_empty_list_correctly_for_py2_and_py3(self):
         result = default_encoding(OrderedDict((('a', 1), ('b', []), ('c', 'asdf'))))
-        self.assertEqual('a=1&c=asdf', result)
+        if six.PY2:
+            self.assertEqual(result, 'a=1&c=asdf')
+        else:
+            self.assertEqual(result, b'a=1&c=asdf')
 
     @mock.patch('generic_request_signer.request.Request', mock.Mock)
     @mock.patch('generic_request_signer.factory.SignedRequestFactory._get_data_payload', mock.Mock)
@@ -225,11 +237,14 @@ class LegacySignedRequestFactoryTests(TestCase):
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
     @mock.patch(urllib_mock)
-    def test_passes_data_to_urllib_request_when_method_is_not_get(self, urllib2_request):
+    def test_passes_data_to_urllib_request_when_method_is_not_get_correctly_for_py2_and_py3(self, urllib2_request):
         self.sut.raw_data = {'some': 'da ta', 'goes': 'he re'}
         self.sut.http_method = 'POST'
         self.sut.create_request('https://www.myurl.com')
-        self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))), urllib2_request.call_args[0][1])
+        if six.PY2:
+            self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))), urllib2_request.call_args[0][1])
+        else:
+            self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))).encode(), urllib2_request.call_args[0][1])
         url = "https://www.myurl.com?{}={}&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
@@ -263,10 +278,13 @@ class LegacySignedRequestFactoryTests(TestCase):
         payload_data = self.sut._get_data_payload(request_headers)
         self.assertEqual({'some': 'data'}, payload_data)
 
-    def test_get_data_payload_returns_default_encoded_data_when_no_content_type_header(self):
+    def test_get_data_payload_returns_default_encoded_data_when_no_content_type_header_correctly_for_py2_and_py3(self):
         self.sut.http_method = "POST"
         payload_data = self.sut._get_data_payload(self.sut.raw_data)
-        self.assertEqual('some=data', payload_data)
+        if six.PY2:
+            self.assertEqual(payload_data, 'some=data')
+        else:
+            self.assertEqual(payload_data, b'some=data')
 
     def test_create_request_sends_header_data_to_get_data_payload(self):
         request_kwargs = {"headers": {"Content-Type": "application/json"}}
