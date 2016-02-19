@@ -34,6 +34,9 @@ def check_signature(signature, private_key, full_path, payload):
     if isinstance(private_key, bytes):
         private_key = private_key.decode("ascii")
 
+    if isinstance(payload, bytes):
+        payload = payload.decode()
+
     url_to_check = _strip_signature_from_url(signature, full_path)
     computed_signature = apysigner.get_signature(private_key, url_to_check, payload)
     return constant_time_compare(signature, computed_signature)
