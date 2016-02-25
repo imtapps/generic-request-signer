@@ -103,4 +103,4 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
     def test_create_multipart_request_returns_request_with_signature(self):
         sut = MultipartSignedRequestFactory("GET", 'client', 'YQ==', data={'data': 'one'}, files={'f1': ('f.jpg', StringIO("f1"))})
         result = sut.create_request('http://localhost/asdf')
-        self.assertEqual('http://localhost/asdf?__client_id=client&data=one&__signature=_bwdosZnhD4KoUnERn3--4uBynq-dU_HN5LDKX19X9s=', result.get_full_url())
+        self.assertEqual('http://localhost/asdf?__client_id=client&data=one&__signature=NSTBEfeYJZKsqn-sm8Rtt4PqbPzMbedISAujopMXjfg=', result.get_full_url())

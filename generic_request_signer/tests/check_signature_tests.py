@@ -32,12 +32,12 @@ class CheckSignatureTests(TestCase):
         self.url_post_data = {'q': 'update'}
 
         # valid signatures for urls above and data
-        self.signature_one = "-GCOa_xQcpt_ugLA6e2LhWVj-DF7tBklt6GDcGL_oWg="
+        self.signature_one = "T-lT3uT2wpUobJvDkXpxtsEAl7KmrEg6k3So_Varya8="
         self.signature_two = "vjMbHBtKyn75TCKFG_OjZIZTcPZ0EZylxD5NMQH0jGs="
 
     def test_returns_true_when_private_key_built_from_base64_url_encoded_string(self):
         base64_private_key = base64.urlsafe_b64encode(b'Private Key')
-        signature_valid = check_signature.check_signature(self.signature_one, base64_private_key, self.url_one, None)
+        signature_valid = check_signature.check_signature(self.signature_one, base64_private_key, self.url_one, {})
         self.assertEqual(True, signature_valid)
 
     def test_returns_true_when_signatures_match_and_no_post_data(self):
