@@ -136,9 +136,12 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
     def get_multipart_files(self):
         for input_file in self.input_files:
             for field_name, (filename, body) in input_file.items():
+                read_body = body.read()
+                if not isinstance(read_body, six.binary_type):
+                    read_body = read_body.encode()
                 yield [
                     self.part_boundary.encode(), self.FILE.format(field_name, filename).encode(),
-                    self.get_content_type(filename), ''.encode(), body.read().encode()
+                    self.get_content_type(filename), ''.encode(), read_body
                 ]
 
     def get_content_type(self, filename):
