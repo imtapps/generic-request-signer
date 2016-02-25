@@ -197,7 +197,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         request = self.sut.create_request(url)
 
         querystring = "?{}={}".format(constants.CLIENT_ID_PARAM_NAME, self.client_id)
-        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, '4dD72V7H32_6zRdkyjenlrhP17cGl_oK2jsxGYe7H30=')
+        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, 'N1WOdyaBUVlPjKVyL3ionapOLAasFdvagfotfCdCW-Y=')
         self.assertEqual(url + querystring, request.get_full_url())
 
     def test_adds_signature_to_url(self):
@@ -206,7 +206,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         request = self.sut.create_request(url)
 
         querystring = "?{}={}".format(constants.CLIENT_ID_PARAM_NAME, self.client_id)
-        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, '4dD72V7H32_6zRdkyjenlrhP17cGl_oK2jsxGYe7H30=')
+        querystring += "&{}={}".format(constants.SIGNATURE_PARAM_NAME, 'N1WOdyaBUVlPjKVyL3ionapOLAasFdvagfotfCdCW-Y=')
         self.assertEqual(url + querystring, request.get_full_url())
 
     @mock.patch(urllib_mock)
@@ -218,7 +218,7 @@ class LegacySignedRequestFactoryTests(TestCase):
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'qJ96-g4nh56Y-29NWyjhVkAU_gje_1RJSmZqdNIdCSk='
+            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
         self.assertEqual(url, urllib_request.call_args[0][0])
 
@@ -232,7 +232,7 @@ class LegacySignedRequestFactoryTests(TestCase):
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,
             constants.SIGNATURE_PARAM_NAME,
-            'qJ96-g4nh56Y-29NWyjhVkAU_gje_1RJSmZqdNIdCSk='
+            'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
 
@@ -338,7 +338,7 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
             '?__client_id=foobar',
             '&token=813bc1ad91dfadsfsdfsd02c',
             '&username=some.user',
-            '&__signature=VfeY6z-Z9mZ4y0H-OEx3H-tIc5gcVvDoQq_v338dcw0='
+            '&__signature=mNDkrb5g96Yz1Dpn9gyuvOKLIKPDijMMs1dj3RGk-Dc='
         ])
         self.assertEqual(url, result)
 
