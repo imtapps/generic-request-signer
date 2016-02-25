@@ -96,7 +96,6 @@ class SignedRequestFactory(object):
     def method_uses_querystring(self):
         return self.http_method.lower() in ('get', 'delete')
 
-
     def _build_client_url(self, url):
         url += "?%s=%s" % (constants.CLIENT_ID_PARAM_NAME, self.client_id)
         return url
@@ -121,7 +120,7 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
     def _build_request(self, body, url):
         new_request = request.Request(self.http_method, url, None)
         new_request.data = body
-        new_request.add_header('Content-type', 'multipart/form-data; boundary=%s' % self.boundary)
+        new_request.add_header('Content-type', 'multipart/form-data; boundary={}'.format(self.boundary).encode())
         return new_request
 
     def get_multipart_body(self, data):
@@ -132,24 +131,25 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
 
     def get_multipart_fields(self, data):
         for name, value in data.items():
-            yield [self.part_boundary, self.FIELD.format(name), '', str(value)]
+            yield [self.part_boundary.encode(), self.FIELD.format(name).encode(), ''.encode(), str(value).encode()]
 
     def get_multipart_files(self):
         for input_file in self.input_files:
             for field_name, (filename, body) in input_file.items():
                 yield [
-                    self.part_boundary, self.FILE.format(field_name, filename),
-                    self.get_content_type(filename), '', body.read()
+                    self.part_boundary.encode(), self.FILE.format(field_name, filename).encode(),
+                    self.get_content_type(filename), ''.encode(), body.read().encode()
                 ]
 
     def get_content_type(self, filename):
-        return 'Content-Type: {}'.format(mimetypes.guess_type(filename)[0] or 'application/octet-stream')
+        return 'Content-Type: {}'.format(mimetypes.guess_type(filename)[0] or 'application/octet-stream').encode()
 
     def flatten_multipart_body(self, parts):
         flattened = list(itertools.chain(*parts))
-        flattened.append(self.part_boundary + '--')
-        flattened.append('')
-        return '\r\n'.join(flattened)
+        boundary_part = self.part_boundary + '--'
+        flattened.append(boundary_part.encode())
+        flattened.append(''.encode())
+        return '\r\n'.encode().join(flattened)
 
     def choose_boundary(self):
         if not self.boundary_prefix:
