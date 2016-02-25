@@ -2,7 +2,7 @@ import six
 import unittest
 
 if six.PY3:
-    from io import StringIO
+    from io import StringIO, BytesIO
 else:
     from cStringIO import StringIO
 
@@ -45,6 +45,17 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
             sut.part_boundary.encode(),
             'Content-Disposition: file; name="file"; filename="file2.jpeg"'.encode(),
             'Content-Type: image/jpeg'.encode(), ''.encode(), 'f2'.encode()
+        ]], result)
+
+    @unittest.skipIf(six.PY2, 'Python 2 does not have a binary type, so this test is unnecessary')
+    def test_get_multipart_files_does_not_care_if_file_is_binary(self):
+        files = {'file': ('file1.jpeg', BytesIO("f1".encode()))}
+        sut = MultipartSignedRequestFactory(None, None, None, None, files=files)
+        result = sut.get_multipart_files()
+        six.assertCountEqual(self, [[
+            sut.part_boundary.encode(),
+            'Content-Disposition: file; name="file"; filename="file1.jpeg"'.encode(),
+            'Content-Type: image/jpeg'.encode(), ''.encode(), 'f1'.encode()
         ]], result)
 
     def test_get_multipart_files_returns_list_of_files_even_with_singular_file(self):
