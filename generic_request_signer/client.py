@@ -3,6 +3,8 @@ from datetime import date
 import json
 import decimal
 
+from apysigner import DefaultJSONEncoder
+
 if six.PY3:
     import urllib.request as urllib
 else:
@@ -31,7 +33,7 @@ class Client(object):
     def _get_response(self, http_method, endpoint, data=None, files=None, timeout=15, **request_kwargs):
         headers = request_kwargs.get("headers", {})
         if not isinstance(data, str) and headers.get("Content-Type") == "application/json":
-            data = json.dumps(data, default=json_encoder)
+            data = json.dumps(data, default=DefaultJSONEncoder, sort_keys=True)
         try:
             http_response = urllib.urlopen(
                 self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
