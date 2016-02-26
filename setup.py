@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='generic-request-signer',
-    version='1.0.5',
+    version='1.0.6',
     author='imtapps',
     url='https://github.com/imtapps/generic-request-signer',
     description="A python library for signing http requests.",
