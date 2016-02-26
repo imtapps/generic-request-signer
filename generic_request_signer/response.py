@@ -20,7 +20,7 @@ class Response(object):
     @property
     def json(self):
         response_content = self.read()
-        if response_content == '':
+        if response_content == ''.encode():
             return {}
         if six.PY3 and isinstance(response_content, bytes):
             response_content = bytes.decode(response_content, 'utf-8')

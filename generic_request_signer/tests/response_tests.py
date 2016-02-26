@@ -45,7 +45,7 @@ class ResponseTests(TestCase):
 
     def test_json_property_returns_empty_object_when_read_results_in_empty_string(self):
         with mock.patch.object(self.sut, 'read') as read:
-            read.return_value = ''
+            read.return_value = ''.encode()
             result = self.sut.json
         self.assertEqual(result, {})
 
