@@ -4,7 +4,7 @@ nosetests --with-xunit --with-xcover --cover-package=generic_request_signer
 TEST_EXIT=$?
 
 echo "Flake8 Results"
-flake8 generic_request_signer
+flake8 generic_request_signer --max-line-length=120
 FLAKE8_EXIT=$?
 
 let JENKINS_EXIT="$TEST_EXIT + $FLAKE8_EXIT"
