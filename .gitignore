@@ -17,3 +17,6 @@ doc/build/*
 .ctags
 .ropeproject/*
 .tox/*
+.coverage
+*.xml
+flake8.txt
