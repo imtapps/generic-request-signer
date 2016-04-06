@@ -45,7 +45,8 @@ class CheckSignatureTests(TestCase):
         self.assertEqual(True, signature_valid)
 
     def test_returns_true_when_signatures_match_and_has_post_data(self):
-        signature_valid = check_signature.check_signature(self.signature_two, self.TEST_PRIVATE_KEY, self.url_two, self.url_post_data)
+        signature_valid = check_signature.check_signature(
+            self.signature_two, self.TEST_PRIVATE_KEY, self.url_two, self.url_post_data)
         self.assertEqual(True, signature_valid)
 
     def test_returns_false_when_signatures_dont_match(self):
@@ -70,14 +71,16 @@ class CheckSignatureTests(TestCase):
             signature=self.signature_two,
         )
 
-        signature_valid = check_signature.check_signature(self.signature_two, self.TEST_PRIVATE_KEY, url_with_sig, self.url_post_data)
+        signature_valid = check_signature.check_signature(
+            self.signature_two, self.TEST_PRIVATE_KEY, url_with_sig, self.url_post_data)
         self.assertEqual(True, signature_valid)
 
 
 class StripSignatureFromUrlTests(TestCase):
 
     def test_strip_signature_from_query_string_after_amp(self):
-        url_path = '/api/CheckAuthentication/?__client_id=config&username=None&token=None&__signature=eWDBUhizESZkHtnyE807XbwdvivZKAIfwRltzcuOqgY='
+        url_path = '/api/CheckAuthentication/?__client_id=config&username=None&token=None'
+        url_path += '&__signature=eWDBUhizESZkHtnyE807XbwdvivZKAIfwRltzcuOqgY='
         signature = 'eWDBUhizESZkHtnyE807XbwdvivZKAIfwRltzcuOqgY='
         result = check_signature._strip_signature_from_url(signature, url_path)
         clean_url = '/api/CheckAuthentication/?__client_id=config&username=None&token=None'
@@ -93,7 +96,7 @@ class StripSignatureFromUrlTests(TestCase):
 class ConstantTimeCompareTests(TestCase):
 
     def test_constant_time_compare(self):
-    # It's hard to test for constant time, just test the result.
+        # It's hard to test for constant time, just test the result.
         self.assertTrue(check_signature.constant_time_compare(b'spam', b'spam'))
         self.assertFalse(check_signature.constant_time_compare(b'spam', b'eggs'))
         self.assertTrue(check_signature.constant_time_compare('spam', 'spam'))

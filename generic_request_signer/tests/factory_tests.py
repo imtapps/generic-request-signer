@@ -54,9 +54,10 @@ class SignedRequestFactoryTests(TestCase):
     def test_build_signature_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
         result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/json"})
-        six.assertCountEqual(self, result, {u"date": u"1900-01-02",
-                                       u"foo": u"100.1200000000000045474735088646411895751953125",
-                                       u"empty": None})
+        six.assertCountEqual(self, result, {
+            "date": "1900-01-02",
+            "foo":  "100.1200000000000045474735088646411895751953125",
+            "empty": None})
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_gets_encoder_when_data_and_method_does_not_use_querystring(self, default_encoding):
@@ -244,7 +245,8 @@ class LegacySignedRequestFactoryTests(TestCase):
         if six.PY2:
             self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))), urllib2_request.call_args[0][1])
         else:
-            self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))).encode(), urllib2_request.call_args[0][1])
+            self.assertEqual(urlencode(OrderedDict(
+                sorted(self.sut.raw_data.items()))).encode(), urllib2_request.call_args[0][1])
         url = "https://www.myurl.com?{}={}&{}={}".format(
             constants.CLIENT_ID_PARAM_NAME,
             self.client_id,

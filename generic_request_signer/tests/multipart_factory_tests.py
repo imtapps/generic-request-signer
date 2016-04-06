@@ -25,11 +25,14 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual("Content-Type: image/jpeg".encode(), sut.get_content_type("img.jpg"))
         self.assertEqual("Content-Type: application/pdf".encode(), sut.get_content_type("doc.pdf"))
         self.assertEqual("Content-Type: application/msword".encode(), sut.get_content_type("doc.doc"))
-        self.assertEqual("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document".encode(), sut.get_content_type("doc.docx"))
+        self.assertEqual(
+            "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document".encode(),
+            sut.get_content_type("doc.docx"))
 
     def test_flatten_multipart_body_returns_string(self):
         sut = MultipartSignedRequestFactory(None, None, None, None)
-        result = sut.flatten_multipart_body((('field1'.encode(), 'val1'.encode()), ('field2'.encode(), 'val2'.encode())))
+        result = sut.flatten_multipart_body(
+            (('field1'.encode(), 'val1'.encode()), ('field2'.encode(), 'val2'.encode())))
         self.assertEqual('field1\r\nval1\r\nfield2\r\nval2\r\n--{}--\r\n'.format(sut.boundary).encode(), result)
 
     def test_get_multipart_files_returns_list_of_files(self):
@@ -109,9 +112,13 @@ class MultipartSignedRequestFactoryTests(unittest.TestCase):
         self.assertEqual("GET", result.http_method)
         self.assertEqual("http://localhost", result.get_full_url())
         self.assertEqual("BODY", result.data)
-        self.assertEqual('multipart/form-data; boundary={}'.format(sut.boundary).encode(), result.headers['Content-type'])
+        self.assertEqual(
+            'multipart/form-data; boundary={}'.format(sut.boundary).encode(), result.headers['Content-type'])
 
     def test_create_multipart_request_returns_request_with_signature(self):
-        sut = MultipartSignedRequestFactory("GET", 'client', 'YQ==', data={'data': 'one'}, files={'f1': ('f.jpg', StringIO("f1"))})
+        sut = MultipartSignedRequestFactory(
+            "GET", 'client', 'YQ==', data={'data': 'one'}, files={'f1': ('f.jpg', StringIO("f1"))})
         result = sut.create_request('http://localhost/asdf')
-        self.assertEqual('http://localhost/asdf?__client_id=client&data=one&__signature=NSTBEfeYJZKsqn-sm8Rtt4PqbPzMbedISAujopMXjfg=', result.get_full_url())
+        url = 'http://localhost/asdf?__client_id=client&data=one'
+        url += '&__signature=NSTBEfeYJZKsqn-sm8Rtt4PqbPzMbedISAujopMXjfg='
+        self.assertEqual(url, result.get_full_url())
