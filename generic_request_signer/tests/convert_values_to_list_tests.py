@@ -29,6 +29,6 @@ class ConvertValuesToListTests(unittest.TestCase):
 
     def test_converts_nested_values_one_level_deep(self):
         actual_dict = ConvertValuesToList()
-        actual_dict.update({'one': {'three': 'another one' }, 'two': ['me too']})
+        actual_dict.update({'one': {'three': 'another one'}, 'two': ['me too']})
         expected = {'one': [{'three': 'another one'}], 'two': ['me too']}
         self.assertEqual(expected, dict(actual_dict))

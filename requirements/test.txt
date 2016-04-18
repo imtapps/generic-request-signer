@@ -4,8 +4,4 @@ mock
 nose
 nosexcover
 coverage
-pyflakes
-pep8
-lettuce
-bpython
 flake8
