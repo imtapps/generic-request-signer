@@ -38,7 +38,10 @@ class SignedRequestFactoryTests(TestCase):
     def test_init_captures_content_type_encodings(self):
         with mock.patch('generic_request_signer.factory.json_encoding') as json_encode:
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
-        self.assertEqual(self.sut.content_type_encodings, {'application/json': json_encode})
+        self.assertEqual(
+            self.sut.content_type_encodings,
+            {'application/json': json_encode, 'application/vnd.api+json': json_encode}
+        )
 
     def test_json_encoding_dumps_json_data_verbatim(self):
         result = json_encoding("['foo', {'bar': ('baz', null, 1.0, 2)}]")
@@ -58,6 +61,15 @@ class SignedRequestFactoryTests(TestCase):
             "date": "1900-01-02",
             "foo":  "100.1200000000000045474735088646411895751953125",
             "empty": None})
+
+    def test_build_signature_dict_in_json_api_generates_correct_python_dict_for_date_decimal_and_none_types(self):
+        self.sut.raw_data = {'date': datetime.date(1900, 1, 2), 'foo': Decimal(100.12), 'empty': None, 'moredata': {'a': 1, 'b': 2}}
+        result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/vnd.api+json"})
+        six.assertCountEqual(self, result, {u"date": u"1900-01-02",
+                                       u"foo": u"100.1200000000000045474735088646411895751953125",
+                                       u"empty": None,
+                                       'moredata': {'a': 1, 'b': 2}})
+        self.assertEqual(result['moredata'], {'a': 1, 'b': 2})
 
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_gets_encoder_when_data_and_method_does_not_use_querystring(self, default_encoding):
@@ -112,6 +124,14 @@ class SignedRequestFactoryTests(TestCase):
     @mock.patch('generic_request_signer.factory.default_encoding')
     def test_get_data_payload_returns_none_when_http_get(self, default_encoding):
         headers = {'Content-Type': 'application/json'}
+        self.sut.http_method = 'GET'
+        with mock.patch.object(self.sut, 'content_type_encodings'):
+            result = self.sut._get_data_payload(headers)
+        self.assertEqual(result, None)
+
+    @mock.patch('generic_request_signer.factory.default_encoding')
+    def test_get_data_payload_returns_none_when_http_get_and_jsonapi(self, default_encoding):
+        headers = {'Content-Type': 'application/vnd.api+json'}
         self.sut.http_method = 'GET'
         with mock.patch.object(self.sut, 'content_type_encodings'):
             result = self.sut._get_data_payload(headers)
@@ -277,6 +297,12 @@ class LegacySignedRequestFactoryTests(TestCase):
     def test_get_data_payload_returns_properly_encoded_data_when_content_type_header_present(self):
         self.sut.http_method = "POST"
         request_headers = {"Content-Type": "application/json"}
+        payload_data = self.sut._get_data_payload(request_headers)
+        self.assertEqual({'some': 'data'}, payload_data)
+
+    def test_get_data_payload_returns_properly_encoded_data_when_content_type_header_present_for_jsonapi(self):
+        self.sut.http_method = "POST"
+        request_headers = {"Content-Type": "application/vnd.api+json"}
         payload_data = self.sut._get_data_payload(request_headers)
         self.assertEqual({'some': 'data'}, payload_data)
 

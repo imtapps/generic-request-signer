@@ -42,6 +42,7 @@ class SignedRequestFactory(object):
         self.files = files
         self.content_type_encodings = {
             'application/json': json_encoding,
+            'application/vnd.api+json': json_encoding,
         }
 
     @property
@@ -72,7 +73,7 @@ class SignedRequestFactory(object):
 
     def _build_signature_dict_for_content_type(self, headers):
         content_type = headers.get("Content-Type")
-        if content_type and content_type == "application/json":
+        if content_type and content_type in ["application/json", "application/vnd.api+json"]:
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
             return encoding_func(self.raw_data)
         if self.raw_data:
