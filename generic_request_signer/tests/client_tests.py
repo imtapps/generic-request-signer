@@ -54,6 +54,12 @@ class ClientTests(TestCase):
             self.sut._get_response('POST', '/endpoint', {'some': 'data'}, **request_args)
         get_request.assert_called_once_with('POST', '/endpoint', '{"some": "data"}', None, **request_args)
 
+    def test_get_response_encodes_json_data_when_content_type_is_application_vnd_api_json(self):
+        request_args = {"headers": {"Content-Type": "application/vnd.api+json"}}
+        with mock.patch.object(self.sut_class, '_get_request') as get_request:
+            self.sut._get_response('POST', '/endpoint', {'some': 'data'}, **request_args)
+        get_request.assert_called_once_with('POST', '/endpoint', '{"some": "data"}', None, **request_args)
+
     def test_get_response_does_not_encode_json_data_when_json_content_already_a_string(self):
         request_args = {"headers": {"Content-Type": "application/json"}}
         json_data = '{"some": "data"}'
