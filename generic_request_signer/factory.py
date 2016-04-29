@@ -9,10 +9,10 @@ import six
 from random import randint
 from collections import OrderedDict
 
-if six.PY3:
-    from urllib.parse import urlencode, quote
-else:
+if six.PY2:
     from urllib import urlencode, quote
+else:
+    from urllib.parse import urlencode, quote
 
 import apysigner
 
@@ -89,7 +89,10 @@ class SignedRequestFactory(object):
         if self.raw_data and not self.method_uses_querystring():
             content_type = request_headers.get("Content-Type")
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
-            return encoding_func(self.raw_data)
+            encoded_data = encoding_func(self.raw_data)
+            if not six.PY2 and isinstance(self.raw_data, str):
+                return encoded_data.encode()
+            return encoded_data
 
     def should_data_be_sent_on_querystring(self):
         return self.method_uses_querystring() and self.raw_data
