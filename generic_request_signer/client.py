@@ -30,7 +30,8 @@ class Client(object):
 
     def _get_response(self, http_method, endpoint, data=None, files=None, timeout=15, **request_kwargs):
         headers = request_kwargs.get("headers", {})
-        if not isinstance(data, str) and headers.get("Content-Type") == "application/json":
+        if not isinstance(data, str) and headers.get("Content-Type") in [
+                "application/json", "application/vnd.api+json"]:
             data = json.dumps(data, default=json_encoder)
         try:
             http_response = urllib.urlopen(
