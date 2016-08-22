@@ -13,6 +13,14 @@ class ExceptionsTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             with self.assertRaises(AttributeError):
                 e.message
+        self.assertEqual(e.message, 'x')
+
+    def test_web_exception_does_not_error_if_no_message_passed_in(self):
+        e = WebException()
+        with self.assertRaises(AssertionError):
+            with self.assertRaises(AttributeError):
+                e.message
+        self.assertEqual(e.message, '')
 
     def test_http_method_not_allowed_is_subclass_of_exception(self):
         self.assertTrue(issubclass(HttpMethodNotAllowed, Exception))
