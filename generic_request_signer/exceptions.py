@@ -1,6 +1,3 @@
-import six
-
-
 class WebException(Exception):
     """
     Base Exception for client errors
@@ -8,10 +5,7 @@ class WebException(Exception):
 
     def __init__(self, message):
         self.message = message
-        if six.PY3:
-            super().__init__()
-        else:
-            super(WebException, self).__init__()
+        super(WebException, self).__init__()
 
 
 class HttpMethodNotAllowed(Exception):
