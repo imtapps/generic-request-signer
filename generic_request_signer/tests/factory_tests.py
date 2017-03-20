@@ -40,7 +40,8 @@ class SignedRequestFactoryTests(TestCase):
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
         self.assertEqual(
             self.sut.content_type_encodings,
-            {'application/json': json_encode, 'application/vnd.api+json': json_encode}
+            {'application/json': json_encode,
+             'application/vnd.api+json': json_encode}
         )
 
     def test_json_encoding_dumps_json_data_verbatim(self):
@@ -57,23 +58,33 @@ class SignedRequestFactoryTests(TestCase):
     def test_build_signature_dict_for_content_type_generates_correct_python_dict_for_date_decimal_and_none_types(self):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
         result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/json"})
-        six.assertCountEqual(self, result, {
-            "date": "1900-01-02",
-            "foo":  "100.1200000000000045474735088646411895751953125",
-            "empty": None})
+        six.assertCountEqual(
+            self, result,
+            {"date": "1900-01-02",
+             "foo": "100.1200000000000045474735088646411895751953125",
+             "empty": None}
+        )
 
     def test_build_signature_dict_in_json_api_generates_correct_python_dict_for_date_decimal_and_none_types(self):
-        self.sut.raw_data = {'date': datetime.date(1900, 1, 2),
-                             'foo': Decimal(100.12),
-                             'empty': None,
-                             'moredata': {'a': 1, 'b': 2}}
+        self.sut.raw_data = {
+            'date': datetime.date(1900, 1, 2),
+            'foo': Decimal(100.12),
+            'empty': None,
+            'moredata': {
+                'a': 1,
+                'b': 2
+            }
+        }
         result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/vnd.api+json"})
         six.assertCountEqual(
             self, result, {
                 "date": "1900-01-02",
                 "foo": "100.1200000000000045474735088646411895751953125",
                 "empty": None,
-                "moredata": {"a": 1, "b": 2}
+                "moredata": {
+                    "a": 1,
+                    "b": 2
+                }
             }
         )
         self.assertEqual(result['moredata'], {'a': 1, 'b': 2})
@@ -243,9 +254,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         self.sut.create_request('http://www.myurl.com')
         self.assertEqual(None, urllib_request.call_args[0][1])
         url = "http://www.myurl.com?{}={}&goes=he+re&some=da+ta&{}={}".format(
-            constants.CLIENT_ID_PARAM_NAME,
-            self.client_id,
-            constants.SIGNATURE_PARAM_NAME,
+            constants.CLIENT_ID_PARAM_NAME, self.client_id, constants.SIGNATURE_PARAM_NAME,
             'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
         self.assertEqual(url, urllib_request.call_args[0][0])
@@ -257,9 +266,7 @@ class LegacySignedRequestFactoryTests(TestCase):
         self.sut.create_request('http://www.myurl.com')
         self.assertEqual(None, urllib2_request.call_args[0][1])
         url = "http://www.myurl.com?{}={}&goes=he+re&some=da+ta&{}={}".format(
-            constants.CLIENT_ID_PARAM_NAME,
-            self.client_id,
-            constants.SIGNATURE_PARAM_NAME,
+            constants.CLIENT_ID_PARAM_NAME, self.client_id, constants.SIGNATURE_PARAM_NAME,
             'oQDdntI8I-YKvMBPlyphnLFoS7xswqdkGNGh0I5uPN8='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
@@ -272,12 +279,11 @@ class LegacySignedRequestFactoryTests(TestCase):
         if six.PY2:
             self.assertEqual(urlencode(OrderedDict(sorted(self.sut.raw_data.items()))), urllib2_request.call_args[0][1])
         else:
-            self.assertEqual(urlencode(OrderedDict(
-                sorted(self.sut.raw_data.items()))).encode(), urllib2_request.call_args[0][1])
+            self.assertEqual(
+                urlencode(OrderedDict(sorted(self.sut.raw_data.items()))).encode(), urllib2_request.call_args[0][1]
+            )
         url = "https://www.myurl.com?{}={}&{}={}".format(
-            constants.CLIENT_ID_PARAM_NAME,
-            self.client_id,
-            constants.SIGNATURE_PARAM_NAME,
+            constants.CLIENT_ID_PARAM_NAME, self.client_id, constants.SIGNATURE_PARAM_NAME,
             'qlOmQQGhbHtfu8i7UMaS_233z1550YN0JDkS1FeOzRA='
         )
         self.assertEqual(url, urllib2_request.call_args[0][0])
@@ -378,13 +384,12 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.sut.http_method = 'GET'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        url = ''.join([
-            'http://bit.ly/',
-            '?__client_id=foobar',
-            '&token=813bc1ad91dfadsfsdfsd02c',
-            '&username=some.user',
-            '&__signature=mNDkrb5g96Yz1Dpn9gyuvOKLIKPDijMMs1dj3RGk-Dc='
-        ])
+        url = ''.join(
+            [
+                'http://bit.ly/', '?__client_id=foobar', '&token=813bc1ad91dfadsfsdfsd02c', '&username=some.user',
+                '&__signature=mNDkrb5g96Yz1Dpn9gyuvOKLIKPDijMMs1dj3RGk-Dc='
+            ]
+        )
         self.assertEqual(url, result)
 
     def test_get_request_returns_url_with_spaces_escaped(self):
@@ -393,10 +398,12 @@ class SignedRequestFactoryBuildSignedUrlTests(TestCase):
         self.sut.http_method = 'POST'
         self.sut.client_id = 'foobar'
         result = self.sut.build_request_url(url, {})
-        expected_url = ''.join([
-            'http://bit.ly/policy_number/8G%20BAD/',
-            '?__client_id=foobar&__signature=-9fbyXUAy8WnbABPZwInisRvcpA_EJaj2nUa5TyapWU='
-        ])
+        expected_url = ''.join(
+            [
+                'http://bit.ly/policy_number/8G%20BAD/',
+                '?__client_id=foobar&__signature=-9fbyXUAy8WnbABPZwInisRvcpA_EJaj2nUa5TyapWU='
+            ]
+        )
         self.assertEqual(result, expected_url)
 
     def test_post_request_returns_url_with_only_client_id_and_signature(self):

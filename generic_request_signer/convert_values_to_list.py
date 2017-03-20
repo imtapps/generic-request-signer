@@ -30,7 +30,7 @@ class ConvertValuesToList(MultiValueDict):
                                 a.append(str(value))
                             else:
                                 a.append(value)
-                except(TypeError, AttributeError):
+                except (TypeError, AttributeError):
                     raise ValueError("MultiValueDict.update() takes either a MultiValueDict or dictionary")
         for key, value in six.iteritems(kwargs):
             self.setlistdefault(key).append(value)

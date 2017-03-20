@@ -46,7 +46,8 @@ class CheckSignatureTests(TestCase):
 
     def test_returns_true_when_signatures_match_and_has_post_data(self):
         signature_valid = check_signature.check_signature(
-            self.signature_two, self.TEST_PRIVATE_KEY, self.url_two, self.url_post_data)
+            self.signature_two, self.TEST_PRIVATE_KEY, self.url_two, self.url_post_data
+        )
         self.assertEqual(True, signature_valid)
 
     def test_returns_false_when_signatures_dont_match(self):
@@ -72,7 +73,8 @@ class CheckSignatureTests(TestCase):
         )
 
         signature_valid = check_signature.check_signature(
-            self.signature_two, self.TEST_PRIVATE_KEY, url_with_sig, self.url_post_data)
+            self.signature_two, self.TEST_PRIVATE_KEY, url_with_sig, self.url_post_data
+        )
         self.assertEqual(True, signature_valid)
 
 
