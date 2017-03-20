@@ -71,7 +71,7 @@ class SignedRequestFactory(object):
         match = re.search(r'(^.+://)([^?]+)(\?.+$)?', url)
         return match.group(1) + quote(match.group(2)) + (match.group(3) if match.group(3) is not None else '')
 
-    def _build_signature_dict_for_content_type(self, headers):
+    def _build_signature_dict_for_content_type(self, headers):  # noqa: C901
         content_type = headers.get("Content-Type")
         if content_type and content_type in ["application/json", "application/vnd.api+json"]:
             encoding_func = self.content_type_encodings.get(content_type, default_encoding)
@@ -137,7 +137,7 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
         for name, value in data.items():
             yield [self.part_boundary.encode(), self.FIELD.format(name).encode(), ''.encode(), str(value).encode()]
 
-    def get_multipart_files(self):
+    def get_multipart_files(self):  # noqa: C901
         for input_file in self.input_files:
             for field_name, (filename, body) in input_file.items():
                 read_body = body.read()
@@ -158,7 +158,7 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
         flattened.append(''.encode())
         return '\r\n'.encode().join(flattened)
 
-    def choose_boundary(self):
+    def choose_boundary(self):  # noqa: C901
         if not self.boundary_prefix:
             try:
                 hostid = socket.gethostbyname(socket.gethostname())

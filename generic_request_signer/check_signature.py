@@ -48,7 +48,7 @@ def _strip_signature_from_url(signature, url_path):
     return clean_url
 
 
-def constant_time_compare(val1, val2):
+def constant_time_compare(val1, val2):  # noqa: C901
     """
     **This code was taken from the django 1.4.x codebase along with the test code**
     Returns True if the two strings are equal, False otherwise.

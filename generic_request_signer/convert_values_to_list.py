@@ -11,7 +11,7 @@ class ConvertValuesToList(MultiValueDict):
         Also casts any ints to strings
     '''
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs):  # noqa: C901
         if len(args) > 1:
             raise TypeError("update expected at most 1 arguments, got %d" % len(args))
         if args:
