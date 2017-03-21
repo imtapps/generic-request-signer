@@ -30,12 +30,13 @@ class Client(object):
 
     def _get_response(self, http_method, endpoint, data=None, files=None, timeout=15, **request_kwargs):
         headers = request_kwargs.get("headers", {})
-        if not isinstance(data, str) and headers.get("Content-Type") in [
-                "application/json", "application/vnd.api+json"]:
+        if ((not isinstance(data, str))
+                and headers.get("Content-Type") in ["application/json", "application/vnd.api+json"]):
             data = json.dumps(data, default=json_encoder)
         try:
             http_response = urllib.urlopen(
-                self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout)
+                self._get_request(http_method, endpoint, data, files, **request_kwargs), timeout=timeout
+            )
         except urllib.HTTPError as e:
             http_response = e
         return response.Response(http_response)
