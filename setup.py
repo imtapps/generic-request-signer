@@ -9,7 +9,6 @@ setup(
     long_description=open('README', 'r').read(),
     install_requires=open('requirements/dist.txt', 'r').read().split("\n"),
     packages=find_packages(exclude=("example", "request_signer.tests")),
-
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
