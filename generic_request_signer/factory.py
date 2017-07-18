@@ -144,7 +144,8 @@ class MultipartSignedRequestFactory(SignedRequestFactory):
                 if not isinstance(read_body, six.binary_type):
                     read_body = read_body.encode()
                 yield [
-                    self.part_boundary.encode(), self.FILE.format(field_name, filename).encode(),
+                    self.part_boundary.encode(),
+                    self.FILE.format(field_name, filename).encode(),
                     self.get_content_type(filename), ''.encode(), read_body
                 ]
 
