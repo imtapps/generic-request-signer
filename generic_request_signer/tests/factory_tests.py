@@ -39,8 +39,10 @@ class SignedRequestFactoryTests(TestCase):
         with mock.patch('generic_request_signer.factory.json_encoding') as json_encode:
             self.sut = self.sut_class(self.method, self.client_id, self.private_key, self.sut.raw_data)
         self.assertEqual(
-            self.sut.content_type_encodings, {'application/json': json_encode,
-                                              'application/vnd.api+json': json_encode}
+            self.sut.content_type_encodings, {
+                'application/json': json_encode,
+                'application/vnd.api+json': json_encode
+            }
         )
 
     def test_json_encoding_dumps_json_data_verbatim(self):
@@ -58,10 +60,11 @@ class SignedRequestFactoryTests(TestCase):
         self.sut.raw_data = {'date': datetime.date(1900, 1, 2), "foo": Decimal(100.12), "empty": None}
         result = self.sut._build_signature_dict_for_content_type({"Content-Type": "application/json"})
         six.assertCountEqual(
-            self, result,
-            {"date": "1900-01-02",
-             "foo": "100.1200000000000045474735088646411895751953125",
-             "empty": None}
+            self, result, {
+                "date": "1900-01-02",
+                "foo": "100.1200000000000045474735088646411895751953125",
+                "empty": None
+            }
         )
 
     def test_build_signature_dict_in_json_api_generates_correct_python_dict_for_date_decimal_and_none_types(self):
