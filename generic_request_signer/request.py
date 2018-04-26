@@ -10,13 +10,13 @@ from generic_request_signer.exceptions import HttpMethodNotAllowed
 
 class Request(Request, object):
 
-    http_method_names = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace']
+    http_method_names = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE']
 
     def __init__(self, http_method, url, data, *args, **kwargs):
-        method_lower = http_method.lower()
-        if method_lower not in self.http_method_names:
+        method_upper = http_method.upper()
+        if method_upper not in self.http_method_names:
             raise HttpMethodNotAllowed
-        self.http_method = http_method
+        self.http_method = method_upper
         super(Request, self).__init__(url, data, *args, **kwargs)
 
     def get_method(self):
