@@ -47,5 +47,5 @@ class RequestTests(unittest.TestCase):
                 self.sut_class('POST', 'http://'.format('/'), {})
 
     def test_has_specific_set_of_http_methods_allowed(self):
-        allowed_http_methods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace']
+        allowed_http_methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE']
         self.assertEqual(allowed_http_methods, self.sut_class.http_method_names)
