@@ -1,3 +1,2 @@
 apysigner>=3.0,<4
-django<1.7
 six>=1.10.0,<2
