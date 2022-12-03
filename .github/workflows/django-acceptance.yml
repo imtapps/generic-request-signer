@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: "ubuntu-20.04"
-    env:
-      PIP_INDEX_URL: ${{ secrets.PIP_INDEX_URL_STAGING }}
-      PIP_EXTRA_INDEX_URL: ${{ secrets.PIP_EXTRA_INDEX_URL }}
     strategy:
       max-parallel: 4
       matrix:
@@ -53,12 +50,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/ci.txt
           pip install -q Django==${{ matrix.django-version }}
-          pip install imtsoftware_scripts_ci
       - name: Run Tests
         run: |
           coverage run -m --source generic_request_signer unittest discover
           coverage report --show-missing
           flake8 generic_request_signer --max-line-length=120 --max-complexity=5
-      - name: Run Standards
-        run: |
-          ci run django standards
