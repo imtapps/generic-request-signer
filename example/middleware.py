@@ -2,6 +2,7 @@ from client import FlaskAuthClient
 
 
 class AuthMiddleware(object):
+
     def __init__(self, app):
         self.app = app.wsgi_app
         self.client = FlaskAuthClient(app.config)
